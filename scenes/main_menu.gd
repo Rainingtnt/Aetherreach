@@ -5,6 +5,7 @@ var start_hovered := false
 
 func _ready() -> void:
 	FractureManager.reset()
+	RoomManager.reset()
 	queue_redraw()
 
 func _process(delta: float) -> void:

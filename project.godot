@@ -37,6 +37,7 @@ dash={
 
 GameEvents="*res://autoloads/game_events.gd"
 FractureManager="*res://autoloads/fracture_manager.gd"
+RoomManager="*res://autoloads/room_manager.gd"
 
 [physics]
 

@@ -10,6 +10,7 @@ const INVINCIBILITY_DURATION := 1.0
 
 var max_health := 5
 var health := 5
+var can_move := true
 var is_dashing := false
 var dash_timer := 0.0
 var dash_cooldown_timer := 0.0
@@ -23,8 +24,8 @@ var cam_shake_amount := 0.0
 var cam_shake_duration := 0.0
 
 @onready var camera: Camera2D = $Camera2D
-const ProjectileScene = preload("res://scripts/projectile.tscn")
-const DashTrailScript = preload("res://effects/dash_trail.gd")
+const ProjectileScene  = preload("res://scripts/projectile.tscn")
+const DashTrailScript  = preload("res://effects/dash_trail.gd")
 
 func _ready() -> void:
 	add_to_group("player")
@@ -37,6 +38,8 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, 20, Color(0.4, 1.0, 1.0, 0.28))
 
 func _process(delta: float) -> void:
+	if not can_move:
+		return
 	if Input.is_action_just_pressed("shoot"):
 		_shoot()
 	_handle_invincibility(delta)
@@ -52,9 +55,11 @@ func _physics_process(delta: float) -> void:
 		if trail_timer <= 0.0:
 			_spawn_trail()
 			trail_timer = 0.045
-	else:
+	elif can_move:
 		_handle_movement(delta)
 		_try_dash()
+	else:
+		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 	move_and_slide()
 
 func _handle_movement(delta: float) -> void:
@@ -132,4 +137,6 @@ func take_damage(amount: int) -> void:
 	GameEvents.player_hit.emit(health, max_health)
 	if health <= 0:
 		GameEvents.player_died.emit()
+		FractureManager.reset()
+		RoomManager.reset()
 		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
