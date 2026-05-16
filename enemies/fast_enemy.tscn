@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://fastenemy00001"]
+[gd_scene format=3 uid="uid://qu3ov6v54ioe"]
 
 [ext_resource type="Script" path="res://enemies/fast_enemy.gd" id="1_fast"]
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://healerenemy0001"]
+[gd_scene format=3 uid="uid://d0ar3jek5pjgq"]
 
 [ext_resource type="Script" path="res://enemies/healer_enemy.gd" id="1_healer"]
 

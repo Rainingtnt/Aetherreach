@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://tankenemy00001"]
+[gd_scene format=3 uid="uid://7f14x4wo8uhc"]
 
 [ext_resource type="Script" path="res://enemies/tank_enemy.gd" id="1_tank"]
 
