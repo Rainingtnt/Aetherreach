@@ -21,12 +21,12 @@ const COMBAT_TEMPLATES: Array = [
 	{
 		"obstacles": [],
 		"spawns": [Vector2(-320,-180),Vector2(320,-180),Vector2(-320,180),
-		           Vector2(320,180),Vector2(0,-220),Vector2(0,220)],
+				   Vector2(320,180),Vector2(0,-220),Vector2(0,220)],
 	},
 	{
 		"obstacles": [{"pos":Vector2(0,0),"size":Vector2(110,110)}],
 		"spawns": [Vector2(-310,-160),Vector2(310,-160),Vector2(-310,160),
-		           Vector2(310,160),Vector2(370,0),Vector2(-370,0)],
+				   Vector2(310,160),Vector2(370,0),Vector2(-370,0)],
 	},
 	{
 		"obstacles": [
@@ -43,7 +43,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2( 160,0),"size":Vector2(55,220)},
 		],
 		"spawns": [Vector2(-360,-180),Vector2(360,-180),Vector2(-360,180),
-		           Vector2(360,180),Vector2(0,-240),Vector2(0,240)],
+				   Vector2(360,180),Vector2(0,-240),Vector2(0,240)],
 	},
 	{
 		"obstacles": [
@@ -51,7 +51,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(0, 140),"size":Vector2(200,50)},
 		],
 		"spawns": [Vector2(-350,-50),Vector2(350,-50),Vector2(-350,50),
-		           Vector2(350,50),Vector2(0,0)],
+				   Vector2(350,50),Vector2(0,0)],
 	},
 ]
 

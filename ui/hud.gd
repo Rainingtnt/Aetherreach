@@ -11,8 +11,8 @@ var wave_announce_timer := 0.0
 const ANNOUNCE_DURATION := 2.2
 
 func _ready() -> void:
-	GameEvents.player_hit.connect(func(h, m): current_health = h; max_health = m; queue_redraw())
-	GameEvents.score_changed.connect(func(s): score_label.text = "SCORE  %d" % s)
+	GameEvents.player_hit.connect(func(h: int, m: int): current_health = h; max_health = m; queue_redraw())
+	GameEvents.score_changed.connect(func(s: int): score_label.text = "SCORE  %d" % s)
 	FractureManager.fractures_changed.connect(func(): queue_redraw())
 	RoomManager.room_loaded.connect(_on_room_loaded)
 
@@ -41,7 +41,7 @@ func _make_label(pos: Vector2, align := HORIZONTAL_ALIGNMENT_LEFT, min_w := 0) -
 	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	return lbl
 
-func _on_room_loaded(pos: Vector2i, type: String, depth: int) -> void:
+func _on_room_loaded(_pos: Vector2i, type: String, depth: int) -> void:
 	depth_label.text = "DEPTH  %d" % depth
 	room_label.text = type.to_upper()
 	wave_announce_text = _room_announce(type, depth)
@@ -50,11 +50,11 @@ func _on_room_loaded(pos: Vector2i, type: String, depth: int) -> void:
 
 func _room_announce(type: String, depth: int) -> String:
 	match type:
-		"start":   return "WELCOME, DRIFTER"
-		"healing": return "HEALING SPRINGS"
-		"shrine":  return "ELEMENTAL SHRINE"
-		"treasure":return "HIDDEN CACHE"
-		"boss":    return "BOSS  DEPTH %d" % depth
+		"start":    return "WELCOME, DRIFTER"
+		"healing":  return "HEALING SPRINGS"
+		"shrine":   return "ELEMENTAL SHRINE"
+		"treasure": return "HIDDEN CACHE"
+		"boss":     return "BOSS  DEPTH %d" % depth
 	return "DEPTH  %d" % depth
 
 func _process(delta: float) -> void:
@@ -67,19 +67,20 @@ func _draw() -> void:
 
 	# Hearts
 	for i in max_health:
-		var col = Color(1, 0.28, 0.38) if i < current_health else Color(0.18, 0.18, 0.22)
+		var col := Color(1, 0.28, 0.38) if i < current_health else Color(0.18, 0.18, 0.22)
 		draw_circle(Vector2(20 + i * 28, 20), 10, col)
 		if i < current_health:
 			draw_circle(Vector2(20 + i * 28, 20), 5, Color(1, 0.65, 0.72))
 
 	# Fracture orbs
-	var fracs := FractureManager.active_fractures
+	var fracs: Array[int] = FractureManager.active_fractures
 	var fx := 640.0 - (fracs.size() - 1) * 22.0
 	for i in fracs.size():
-		var col := FractureManager.ELEMENT_COLORS[fracs[i]]
+		var col: Color = FractureManager.ELEMENT_COLORS[fracs[i]] as Color
 		draw_circle(Vector2(fx + i * 44, 695), 13, col)
 		draw_circle(Vector2(fx + i * 44, 695), 7, Color.WHITE.lerp(col, 0.35))
-		draw_string(font, Vector2(fx + i * 44 - 4, 700), FractureManager.ELEMENT_NAMES[fracs[i]][0],
+		var elem_name: String = FractureManager.ELEMENT_NAMES[fracs[i]] as String
+		draw_string(font, Vector2(fx + i * 44 - 4, 700), elem_name[0],
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color.WHITE)
 
 	# Synergy
@@ -97,31 +98,32 @@ func _draw() -> void:
 	# Minimap
 	_draw_minimap(font)
 
-func _draw_minimap(font: Font) -> void:
-	if not RoomManager.world.size() > 0:
+func _draw_minimap(_font: Font) -> void:
+	if RoomManager.world.is_empty():
 		return
-	var cx := 1190.0
-	var cy := 100.0
-	var rw := 10.0
-	var rh :=  7.0
-	var gap_x := 14.0
-	var gap_y :=  9.0
+	var cx    := 1190.0
+	var cy    :=  100.0
+	var rw    :=   10.0
+	var rh    :=    7.0
+	var gap_x :=   14.0
+	var gap_y :=    9.0
 
-	for pos in RoomManager.world:
-		if not pos in RoomManager.visited:
+	for raw_pos in RoomManager.world:
+		if not RoomManager.visited.has(raw_pos):
 			continue
-		var data := RoomManager.world[pos]
-		var col := _minimap_color(data["type"])
-		if pos == RoomManager.current_pos:
+		var gp  := raw_pos as Vector2i
+		var data: Dictionary = RoomManager.world[raw_pos] as Dictionary
+		var col: Color = _minimap_color(data["type"] as String)
+		if gp == RoomManager.current_pos:
 			col = Color.WHITE
-		var sx := cx + pos.x * gap_x
-		var sy := cy + pos.y * gap_y
+		var sx := cx + gp.x * gap_x
+		var sy := cy + gp.y * gap_y
 		draw_rect(Rect2(sx - rw * 0.5, sy - rh * 0.5, rw, rh), col)
 
-		# Draw connections
-		for dir in data.get("exits", []):
-			var npos: Vector2i = pos + RoomManager.DIRS[dir]
-			if npos in RoomManager.visited:
+		for raw_dir in (data.get("exits", []) as Array):
+			var dir := raw_dir as String
+			var npos: Vector2i = gp + (RoomManager.DIRS[dir] as Vector2i)
+			if RoomManager.visited.has(npos):
 				var nx := cx + npos.x * gap_x
 				var ny := cy + npos.y * gap_y
 				draw_line(Vector2(sx, sy), Vector2(nx, ny), Color(0.5, 0.5, 0.6, 0.5), 1)
