@@ -1,26 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://dj2p6r0m5v8q1s"]
+[gd_scene load_steps=3 format=3 uid="uid://dj2p6r0m5v8q1s"]
 
 [ext_resource type="Script" path="res://scenes/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://cnvqx7v3mq3a6" path="res://player/player.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://bw1m8k0v5rp1ne" path="res://enemies/enemy.tscn" id="3_enemy"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(0, 0)
-
-[node name="Enemy1" parent="." instance=ExtResource("3_enemy")]
-position = Vector2(-400, -250)
-
-[node name="Enemy2" parent="." instance=ExtResource("3_enemy")]
-position = Vector2(400, -200)
-
-[node name="Enemy3" parent="." instance=ExtResource("3_enemy")]
-position = Vector2(0, 400)
-
-[node name="Enemy4" parent="." instance=ExtResource("3_enemy")]
-position = Vector2(-300, 300)
-
-[node name="Enemy5" parent="." instance=ExtResource("3_enemy")]
-position = Vector2(600, 200)

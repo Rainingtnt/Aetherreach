@@ -9,6 +9,8 @@ var player: Node2D = null
 var contact_timer := 0.0
 var hit_flash := false
 
+const DeathBurst = preload("res://effects/death_burst.tscn")
+
 func _ready() -> void:
 	add_to_group("enemies")
 	queue_redraw()
@@ -17,8 +19,8 @@ func _ready() -> void:
 		player = players[0]
 
 func _draw() -> void:
-	var color = Color(1, 0.9, 0.9) if hit_flash else Color(1, 0.3, 0.3)
-	draw_circle(Vector2.ZERO, 14, color)
+	var col = Color(1, 0.9, 0.9) if hit_flash else Color(1, 0.3, 0.3)
+	draw_circle(Vector2.ZERO, 14, col)
 
 func _physics_process(delta: float) -> void:
 	if player == null:
@@ -39,4 +41,9 @@ func take_damage(amount: int) -> void:
 		queue_redraw()
 	)
 	if health <= 0:
+		var burst = DeathBurst.instantiate()
+		burst.global_position = global_position
+		burst.color = Color(1, 0.3, 0.3)
+		get_parent().add_child(burst)
+		GameEvents.enemy_died.emit(global_position, 1)
 		queue_free()

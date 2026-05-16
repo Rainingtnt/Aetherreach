@@ -17,21 +17,27 @@ var dash_direction := Vector2.ZERO
 var can_take_damage := true
 var invincibility_timer := 0.0
 
+var cam_shake_amount := 0.0
+var cam_shake_duration := 0.0
+
+@onready var camera: Camera2D = $Camera2D
 var projectile_scene := preload("res://scripts/projectile.tscn")
 
 func _ready() -> void:
 	add_to_group("player")
+	GameEvents.player_hit.emit(health, max_health)
 	queue_redraw()
 
 func _draw() -> void:
 	draw_circle(Vector2.ZERO, 12, Color.CYAN)
 	if is_dashing:
-		draw_circle(Vector2.ZERO, 18, Color(0.4, 1, 1, 0.3))
+		draw_circle(Vector2.ZERO, 20, Color(0.4, 1.0, 1.0, 0.28))
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("shoot"):
 		_shoot()
 	_handle_invincibility(delta)
+	_update_camera_shake(delta)
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:
@@ -74,6 +80,16 @@ func _handle_invincibility(delta: float) -> void:
 			can_take_damage = true
 			modulate.a = 1.0
 
+func _update_camera_shake(delta: float) -> void:
+	if cam_shake_duration > 0.0:
+		cam_shake_duration -= delta
+		camera.offset = Vector2(
+			randf_range(-cam_shake_amount, cam_shake_amount),
+			randf_range(-cam_shake_amount, cam_shake_amount)
+		)
+	else:
+		camera.offset = Vector2.ZERO
+
 func _shoot() -> void:
 	var proj = projectile_scene.instantiate()
 	get_parent().add_child(proj)
@@ -86,5 +102,9 @@ func take_damage(amount: int) -> void:
 	health -= amount
 	can_take_damage = false
 	invincibility_timer = INVINCIBILITY_DURATION
+	cam_shake_amount = 7.0
+	cam_shake_duration = 0.22
+	GameEvents.player_hit.emit(health, max_health)
 	if health <= 0:
-		get_tree().reload_current_scene()
+		GameEvents.player_died.emit()
+		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
