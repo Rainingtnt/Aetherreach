@@ -1,25 +1,23 @@
 extends Node
 
-# --- Constants ---
-const HW := 450.0   # room half-width
-const HH := 300.0   # room half-height
+const HW := 450.0
+const HH := 300.0
 
-const DIRS := {
-	"north": Vector2i(0, -1), "south": Vector2i(0, 1),
+const DIRS: Dictionary = {
+	"north": Vector2i(0, -1), "south": Vector2i(0,  1),
 	"east":  Vector2i(1,  0), "west":  Vector2i(-1, 0),
 }
-const OPP := {"north":"south","south":"north","east":"west","west":"east"}
-
-# Where the player spawns inside the new room depending on which door they came through
-const ENTRY_SPAWN := {
+const OPP: Dictionary = {
+	"north": "south", "south": "north", "east": "west", "west": "east"
+}
+const ENTRY_SPAWN: Dictionary = {
 	"north": Vector2(0,  220),
 	"south": Vector2(0, -220),
 	"east":  Vector2(-380, 0),
 	"west":  Vector2( 380, 0),
 }
 
-# --- Combat room templates (obstacles + spawn positions) ---
-const COMBAT_TEMPLATES := [
+const COMBAT_TEMPLATES: Array = [
 	{
 		"obstacles": [],
 		"spawns": [Vector2(-320,-180),Vector2(320,-180),Vector2(-320,180),
@@ -57,9 +55,8 @@ const COMBAT_TEMPLATES := [
 	},
 ]
 
-# --- World state ---
-var world: Dictionary = {}     # Vector2i → room data dict
-var visited: Dictionary = {}   # Vector2i → true (explored rooms)
+var world: Dictionary = {}
+var visited: Dictionary = {}
 var current_pos := Vector2i.ZERO
 var current_depth := 0
 var total_score := 0
@@ -72,7 +69,6 @@ var _transitioning := false
 
 signal room_loaded(pos: Vector2i, room_type: String, depth: int)
 
-# --- Initialization ---
 func initialize(container: Node2D, player: Node2D, fade: ColorRect) -> void:
 	_world_container = container
 	_player = player
@@ -82,35 +78,36 @@ func initialize(container: Node2D, player: Node2D, fade: ColorRect) -> void:
 	visited[Vector2i.ZERO] = true
 	_swap_room(Vector2i.ZERO, "")
 
-# --- World generation ---
 func _generate_world() -> void:
 	world.clear()
 	world[Vector2i.ZERO] = _make_room("start", [])
-	var frontier := [Vector2i.ZERO]
+	var frontier: Array[Vector2i] = [Vector2i.ZERO]
 	var target := 10 + randi() % 6
 
 	for _i in target:
 		if frontier.is_empty():
 			break
 		var pos: Vector2i = frontier[randi() % frontier.size()]
-		var dirs := DIRS.keys()
+		var dirs: Array = DIRS.keys()
 		dirs.shuffle()
 		for dir in dirs:
-			var npos := pos + DIRS[dir]
-			if npos in world:
+			var npos: Vector2i = pos + (DIRS[dir] as Vector2i)
+			if world.has(npos):
 				continue
-			var type := _pick_type(abs(npos.x) + abs(npos.y))
-			var data := _make_room(type, [OPP[dir]])
+			var type: String = _pick_type(abs(npos.x) + abs(npos.y))
+			var opp_dir: String = OPP[dir] as String
+			var data: Dictionary = _make_room(type, [opp_dir])
 			world[pos]["exits"].append(dir)
 			world[npos] = data
 			frontier.append(npos)
 			break
 
-	# Mark the deepest room as boss
+	# Deepest room becomes boss
 	var boss_pos := Vector2i.ZERO
 	var max_d := 0
-	for p in world:
-		var d := abs(p.x) + abs(p.y)
+	for raw_pos in world:
+		var p := raw_pos as Vector2i
+		var d: int = abs(p.x) + abs(p.y)
 		if d > max_d:
 			max_d = d
 			boss_pos = p
@@ -135,11 +132,10 @@ func _pick_type(depth: int) -> String:
 	if r < 0.82: return "shrine"
 	return "treasure"
 
-# --- Room transitions ---
 func enter_door(direction: String) -> void:
 	if _transitioning:
 		return
-	var npos := current_pos + DIRS[direction]
+	var npos: Vector2i = current_pos + (DIRS[direction] as Vector2i)
 	if not world.has(npos):
 		return
 	_transitioning = true
@@ -164,20 +160,18 @@ func _swap_room(pos: Vector2i, came_from_dir: String) -> void:
 		_current_room.queue_free()
 		_current_room = null
 
-	var data := world[pos]
-	var RoomClass := load("res://rooms/room.gd")
+	var data: Dictionary = world[pos]
+	var RoomClass = load("res://rooms/room.gd")
 	var room: Node2D = RoomClass.new()
 	_world_container.add_child(room)
 	_current_room = room
-	room.setup(data["type"], data["exits"], data["template"], data["cleared"])
+	room.setup(data["type"] as String, data["exits"] as Array, data["template"] as int, data["cleared"] as bool)
 
-	# Position player at entry point
 	if came_from_dir != "":
-		_player.global_position = ENTRY_SPAWN[came_from_dir]
+		_player.global_position = ENTRY_SPAWN[came_from_dir] as Vector2
 	else:
 		_player.global_position = Vector2.ZERO
 
-	# Update camera limits
 	var cam: Camera2D = _player.get_node("Camera2D")
 	cam.limit_left   = int(-HW)
 	cam.limit_top    = int(-HH)
@@ -186,7 +180,7 @@ func _swap_room(pos: Vector2i, came_from_dir: String) -> void:
 
 	room.on_enter(_player)
 	room.room_cleared.connect(func(): _on_room_cleared(pos))
-	room_loaded.emit(pos, data["type"], current_depth)
+	room_loaded.emit(pos, data["type"] as String, current_depth)
 
 func _on_room_cleared(pos: Vector2i) -> void:
 	world[pos]["cleared"] = true
