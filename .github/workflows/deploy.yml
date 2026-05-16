@@ -1,0 +1,61 @@
+name: Export and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: 4.6.2
+
+permissions:
+  contents: write
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot binaries
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/godot/export_templates
+            ./godot_bin
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - name: Download Godot
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p godot_bin
+          wget -q "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64.zip" -O godot.zip
+          unzip -q godot.zip -d godot_bin
+          chmod +x godot_bin/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64
+
+      - name: Download Export Templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          wget -q "https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz" -O templates.tpz
+          unzip -q templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable/
+          rm -rf templates templates.tpz godot.zip
+
+      - name: Export Web build
+        run: |
+          mkdir -p build/web
+          ./godot_bin/Godot_v${{ env.GODOT_VERSION }}-stable_linux.x86_64 \
+            --headless \
+            --export-release "Web" \
+            "${{ github.workspace }}/build/web/index.html" 2>&1
+        working-directory: ${{ github.workspace }}
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          force_orphan: true
+          commit_message: "Deploy ${{ github.sha }}"
