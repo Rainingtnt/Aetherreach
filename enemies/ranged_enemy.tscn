@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://rangedenemy001"]
+[gd_scene format=3 uid="uid://crnpgyouhul33"]
 
 [ext_resource type="Script" path="res://enemies/ranged_enemy.gd" id="1_ranged"]
 
