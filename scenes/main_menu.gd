@@ -4,6 +4,7 @@ var time := 0.0
 var start_hovered := false
 
 func _ready() -> void:
+	FractureManager.reset()
 	queue_redraw()
 
 func _process(delta: float) -> void:

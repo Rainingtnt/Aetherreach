@@ -16,12 +16,15 @@ var dash_cooldown_timer := 0.0
 var dash_direction := Vector2.ZERO
 var can_take_damage := true
 var invincibility_timer := 0.0
+var regen_timer := 0.0
+var trail_timer := 0.0
 
 var cam_shake_amount := 0.0
 var cam_shake_duration := 0.0
 
 @onready var camera: Camera2D = $Camera2D
-var projectile_scene := preload("res://scripts/projectile.tscn")
+const ProjectileScene = preload("res://scripts/projectile.tscn")
+const DashTrailScript = preload("res://effects/dash_trail.gd")
 
 func _ready() -> void:
 	add_to_group("player")
@@ -37,6 +40,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("shoot"):
 		_shoot()
 	_handle_invincibility(delta)
+	_handle_regen(delta)
 	_update_camera_shake(delta)
 	queue_redraw()
 
@@ -44,6 +48,10 @@ func _physics_process(delta: float) -> void:
 	_handle_dash_timers(delta)
 	if is_dashing:
 		velocity = dash_direction * DASH_SPEED
+		trail_timer -= delta
+		if trail_timer <= 0.0:
+			_spawn_trail()
+			trail_timer = 0.045
 	else:
 		_handle_movement(delta)
 		_try_dash()
@@ -63,6 +71,7 @@ func _try_dash() -> void:
 		is_dashing = true
 		dash_timer = DASH_DURATION
 		dash_cooldown_timer = DASH_COOLDOWN
+		trail_timer = 0.0
 
 func _handle_dash_timers(delta: float) -> void:
 	if is_dashing:
@@ -80,6 +89,16 @@ func _handle_invincibility(delta: float) -> void:
 			can_take_damage = true
 			modulate.a = 1.0
 
+func _handle_regen(delta: float) -> void:
+	var interval := FractureManager.get_nature_regen_interval()
+	if interval <= 0.0 or health >= max_health:
+		return
+	regen_timer -= delta
+	if regen_timer <= 0.0:
+		regen_timer = interval
+		health = min(health + 1, max_health)
+		GameEvents.player_hit.emit(health, max_health)
+
 func _update_camera_shake(delta: float) -> void:
 	if cam_shake_duration > 0.0:
 		cam_shake_duration -= delta
@@ -90,8 +109,14 @@ func _update_camera_shake(delta: float) -> void:
 	else:
 		camera.offset = Vector2.ZERO
 
+func _spawn_trail() -> void:
+	var trail := Node2D.new()
+	trail.set_script(DashTrailScript)
+	trail.global_position = global_position
+	get_parent().add_child(trail)
+
 func _shoot() -> void:
-	var proj = projectile_scene.instantiate()
+	var proj = ProjectileScene.instantiate()
 	get_parent().add_child(proj)
 	proj.global_position = global_position
 	proj.direction = (get_global_mouse_position() - global_position).normalized()
