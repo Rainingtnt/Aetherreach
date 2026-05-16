@@ -20,6 +20,10 @@ func _physics_process(delta: float) -> void:
 	position += direction * speed * delta
 
 func _on_body_entered(body: Node) -> void:
+	if body.is_in_group("destructible") and body.has_method("take_damage"):
+		body.take_damage(damage)
+		queue_free()
+		return
 	if not body.is_in_group("enemies"):
 		return
 	body.take_damage(damage)

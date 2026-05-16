@@ -51,6 +51,10 @@ func apply_slow(duration: float) -> void:
 	slow_timer = duration
 	queue_redraw()
 
+func heal(amount: int) -> void:
+	health = min(health + amount, max_health)
+	queue_redraw()
+
 func take_damage(amount: int) -> void:
 	health -= amount
 	hit_flash = true

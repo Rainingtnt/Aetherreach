@@ -10,7 +10,8 @@ const INVINCIBILITY_DURATION := 1.0
 
 var max_health := 5
 var health := 5
-var can_move := true
+var can_move   := true
+var speed_mult := 1.0
 var is_dashing := false
 var dash_timer := 0.0
 var dash_cooldown_timer := 0.0
@@ -65,7 +66,7 @@ func _physics_process(delta: float) -> void:
 func _handle_movement(delta: float) -> void:
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	if input_dir != Vector2.ZERO:
-		velocity = velocity.move_toward(input_dir * SPEED, ACCELERATION * delta)
+		velocity = velocity.move_toward(input_dir * SPEED * speed_mult, ACCELERATION * delta)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 
