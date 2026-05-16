@@ -20,12 +20,12 @@ func _process(delta: float) -> void:
 		queue_free()
 
 func _draw() -> void:
-	var col := FractureManager.ELEMENT_COLORS[element]
+	var col: Color = FractureManager.ELEMENT_COLORS[element] as Color
 	var pulse := (sin(float_time * 5.0) + 1.0) * 0.5
 	var r := 9.0 + pulse * 3.0
 	draw_circle(Vector2.ZERO, r, col)
 	draw_circle(Vector2.ZERO, r * 0.5, Color.WHITE.lerp(col, 0.4))
-	var name_initial := FractureManager.ELEMENT_NAMES[element][0]
+	var name_initial: String = (FractureManager.ELEMENT_NAMES[element] as String)[0]
 	var font := ThemeDB.fallback_font
 	draw_string(font, Vector2(-4, 5), name_initial, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color.WHITE)
 

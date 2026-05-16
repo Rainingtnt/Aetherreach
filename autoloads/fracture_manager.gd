@@ -68,7 +68,7 @@ func get_projectile_color() -> Color:
 		return Color(1, 0.95, 0.3)
 	var col := Color.BLACK
 	for e in active_fractures:
-		col += ELEMENT_COLORS[e]
+		col += ELEMENT_COLORS[e] as Color
 	col /= active_fractures.size()
 	col.a = 1.0
 	return col
