@@ -125,7 +125,7 @@ func _do_chain(source: Node) -> void:
 			best   = e
 			best_d = d
 	if best == null: return
-	var chain := load("res://scripts/projectile.tscn").instantiate()
+	var chain: Node = load("res://scripts/projectile.tscn").instantiate()
 	chain.set("damage",    damage)
 	chain.set("speed",     speed * 0.85)
 	chain.set("direction", ((best as Node2D).global_position - global_position).normalized())
@@ -142,7 +142,7 @@ func _chain_lightning(source: Node) -> void:
 	)
 	candidates.sort_custom(func(a, b):
 		return (a as Node2D).global_position.distance_to((source as Node2D).global_position) < \
-		       (b as Node2D).global_position.distance_to((source as Node2D).global_position)
+			   (b as Node2D).global_position.distance_to((source as Node2D).global_position)
 	)
 	for e in candidates.slice(0, chain_cnt):
 		e.take_damage(damage)
