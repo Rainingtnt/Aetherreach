@@ -16,6 +16,7 @@ var contact_t  := 0.0
 var hit_flash  := false
 var speed_mult := 1.0
 var slow_timer := 0.0
+var _anim_t    := randf() * TAU
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const EnemyProjectile = preload("res://scripts/enemy_projectile.tscn")
@@ -28,7 +29,13 @@ func _ready() -> void:
 	if pl.size() > 0:
 		player = pl[0]
 
+func _process(delta: float) -> void:
+	_anim_t += delta
+	queue_redraw()
+
 func _draw() -> void:
+	var wobble := sin(_anim_t * 1.8) * 1.8
+	draw_set_transform(Vector2(0, wobble))
 	var col := Color(0.88, 0.88, 1.0) if hit_flash else Color(0.52, 0.22, 1.0)
 	if slow_timer > 0:
 		col = col.lerp(Color(0.4, 0.7, 1.0), 0.5)
@@ -49,6 +56,7 @@ func _draw() -> void:
 		var pct := float(health) / float(max_health)
 		draw_rect(Rect2(-13, -22, 26, 3), Color(0.12, 0.12, 0.12))
 		draw_rect(Rect2(-13, -22, 26.0 * pct, 3), Color(0.58, 0.28, 1.0))
+	draw_set_transform(Vector2.ZERO)
 
 func _physics_process(delta: float) -> void:
 	if slow_timer > 0:
@@ -81,8 +89,8 @@ func _shoot() -> void:
 	proj.global_position = global_position
 	proj.direction = (player.global_position - global_position).normalized()
 
-func apply_slow(duration: float) -> void:
-	speed_mult = 0.35
+func apply_slow(duration: float, mult: float = 0.35) -> void:
+	speed_mult = mult
 	slow_timer = duration
 	queue_redraw()
 

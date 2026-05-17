@@ -77,7 +77,7 @@ func _draw() -> void:
 
 	# Glowing eyes
 	var eye_col := Color(1.0, 0.55, 0.0) if phase == 1 else \
-	              (Color(1.0, 0.28, 0.0) if phase == 2 else Color(1.0, 0.08, 0.0))
+				  (Color(1.0, 0.28, 0.0) if phase == 2 else Color(1.0, 0.08, 0.0))
 	draw_circle(Vector2(-4.5, -19), 3.5, eye_col)
 	draw_circle(Vector2( 4.5, -19), 3.5, eye_col)
 	draw_circle(Vector2(-4.5, -19), 1.5, Color(0.08, 0.02, 0.0))

@@ -74,8 +74,8 @@ func _pulse_heal() -> void:
 		if e.global_position.distance_to(global_position) <= HEAL_RANGE and e.has_method("heal"):
 			e.heal(HEAL_AMOUNT)
 
-func apply_slow(duration: float) -> void:
-	speed_mult = 0.35
+func apply_slow(duration: float, mult: float = 0.35) -> void:
+	speed_mult = mult
 	slow_timer = duration
 
 func heal(amount: int) -> void:

@@ -13,6 +13,7 @@ var contact_t  := 0.0
 var hit_flash  := false
 var speed_mult := 1.0
 var slow_timer := 0.0
+var _anim_t    := randf() * TAU
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
@@ -24,7 +25,13 @@ func _ready() -> void:
 	if pl.size() > 0:
 		player = pl[0]
 
+func _process(delta: float) -> void:
+	_anim_t += delta
+	queue_redraw()
+
 func _draw() -> void:
+	var wobble := sin(_anim_t * 2.6) * 1.4
+	draw_set_transform(Vector2(0, wobble))
 	var col := Color(0.88, 0.88, 1.0) if hit_flash else Color(0.85, 0.22, 0.22)
 	if slow_timer > 0:
 		col = col.lerp(Color(0.4, 0.7, 1.0), 0.5)
@@ -43,6 +50,7 @@ func _draw() -> void:
 		var pct := float(health) / float(max_health)
 		draw_rect(Rect2(-14, -24, 28, 3), Color(0.12, 0.12, 0.12))
 		draw_rect(Rect2(-14, -24, 28.0 * pct, 3), Color(0.28, 1.0, 0.3))
+	draw_set_transform(Vector2.ZERO)
 
 func _physics_process(delta: float) -> void:
 	if slow_timer > 0:
@@ -58,8 +66,8 @@ func _physics_process(delta: float) -> void:
 		player.take_damage(damage)
 		contact_t = CONTACT_COOLDOWN
 
-func apply_slow(duration: float) -> void:
-	speed_mult = 0.35
+func apply_slow(duration: float, mult: float = 0.35) -> void:
+	speed_mult = mult
 	slow_timer = duration
 	queue_redraw()
 

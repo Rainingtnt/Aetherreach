@@ -87,8 +87,8 @@ func _physics_process(delta: float) -> void:
 		player.take_damage(damage)
 		contact_t = CONTACT_CD
 
-func apply_slow(duration: float) -> void:
-	speed_mult = 0.35
+func apply_slow(duration: float, mult: float = 0.35) -> void:
+	speed_mult = mult
 	slow_timer = duration
 
 func heal(amount: int) -> void:

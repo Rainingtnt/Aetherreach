@@ -13,6 +13,7 @@ var damage     := 1
 var player: Node2D = null
 var zigzag_t   := randf() * TAU
 var contact_t  := 0.0
+var _anim_t    := randf() * TAU
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
@@ -24,7 +25,13 @@ func _ready() -> void:
 	if pl.size() > 0:
 		player = pl[0]
 
+func _process(delta: float) -> void:
+	_anim_t += delta
+	queue_redraw()
+
 func _draw() -> void:
+	var wobble := sin(_anim_t * 4.5) * 1.0
+	draw_set_transform(Vector2(0, wobble))
 	# Blade/arrowhead body
 	var pts := PackedVector2Array([
 		Vector2(0, -13), Vector2(9, 4),
@@ -36,6 +43,7 @@ func _draw() -> void:
 		Color(0.5, 1.0, 0.88, 0.7), 1.2)
 	# Speed streak
 	draw_line(Vector2(0, 6), Vector2(0, 14), Color(0.12, 0.90, 0.72, 0.35), 2)
+	draw_set_transform(Vector2.ZERO)
 
 func _physics_process(delta: float) -> void:
 	if player == null: return

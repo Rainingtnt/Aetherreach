@@ -25,8 +25,10 @@ const TankScene     = preload("res://enemies/tank_enemy.tscn")
 const HealerScene   = preload("res://enemies/healer_enemy.tscn")
 const BossPyra      = preload("res://enemies/boss_pyra.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
-const CrateScript   = preload("res://scripts/crate.gd")
-const AmbientScript = preload("res://scripts/ambient_particles.gd")
+const CrateScript        = preload("res://scripts/crate.gd")
+const BarrelScript       = preload("res://scripts/barrel.gd")
+const AmbientScript      = preload("res://scripts/ambient_particles.gd")
+const WeaponPickupScript = preload("res://scripts/weapon_pickup.gd")
 
 # --- State ---
 var room_type   := "combat"
@@ -259,10 +261,11 @@ func _build_env_objects() -> void:
 func _scatter_crates(count: int) -> void:
 	for _i in count:
 		var pos := _safe_random_pos(50)
-		var crate := StaticBody2D.new()
-		crate.set_script(CrateScript)
-		crate.position = pos
-		add_child(crate)
+		# 30% chance to spawn a barrel instead of a crate
+		var obj := StaticBody2D.new()
+		obj.set_script(BarrelScript if randf() < 0.30 else CrateScript)
+		obj.position = pos
+		add_child(obj)
 
 func _scatter_hazard_pits(count: int) -> void:
 	for _i in count:
@@ -384,9 +387,15 @@ func _add_shrine() -> void:
 	)
 
 func _add_treasure() -> void:
+	# Weapon pickup (guaranteed)
+	var wp := Area2D.new()
+	wp.set_script(WeaponPickupScript)
+	add_child(wp)
+	wp.setup(WeaponManager.random_drop_key(), Vector2(0, -30))
+	# Fracture pickup
 	var frac := FracturePickup.instantiate()
 	add_child(frac)
-	frac.setup(randi() % 4, Vector2.ZERO)
+	frac.setup(randi() % 4, Vector2(0, 40))
 
 # ---------------------------------------------------------------
 # Enemy spawning — weighted by depth

@@ -13,6 +13,8 @@ const ANNOUNCE_DURATION := 2.2
 var boss_hp     := 0
 var boss_max_hp := 0
 var boss_active := false
+var weapon_name  := ""
+var weapon_color := Color.WHITE
 
 func _ready() -> void:
 	GameEvents.player_hit.connect(func(h: int, m: int): current_health = h; max_health = m; queue_redraw())
@@ -21,6 +23,7 @@ func _ready() -> void:
 	RoomManager.room_loaded.connect(_on_room_loaded)
 	GameEvents.boss_hp_changed.connect(func(c: int, m: int): boss_hp = c; boss_max_hp = m; boss_active = true; queue_redraw())
 	GameEvents.boss_defeated.connect(func(): boss_active = false; queue_redraw())
+	GameEvents.weapon_changed.connect(func(_k: String, wn: String, wc: Color): weapon_name = wn; weapon_color = wc; queue_redraw())
 
 	score_label = _make_label(Vector2(980, 10), HORIZONTAL_ALIGNMENT_RIGHT, 290)
 	score_label.text = "SCORE  0"
@@ -109,6 +112,12 @@ func _draw() -> void:
 		var alpha := 4.0 * t * (1.0 - t)
 		draw_string(font, Vector2(0, 375), wave_announce_text,
 			HORIZONTAL_ALIGNMENT_CENTER, 1280, 44, Color(1, 0.88, 0.3, alpha))
+
+	# Weapon display
+	if weapon_name != "":
+		draw_circle(Vector2(20, 668), 7, weapon_color)
+		draw_circle(Vector2(20, 668), 4, Color.WHITE.lerp(weapon_color, 0.3))
+		draw_string(font, Vector2(32, 673), weapon_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, weapon_color)
 
 	# Boss health bar
 	if boss_active and boss_max_hp > 0:
