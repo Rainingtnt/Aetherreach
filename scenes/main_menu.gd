@@ -19,7 +19,7 @@ func _ready() -> void:
 	queue_redraw()
 
 func _make_particle(random_y := false) -> Dictionary:
-	var col := BIOME_COLORS[randi() % 4]
+	var col: Color = BIOME_COLORS[randi() % 4] as Color
 	return {
 		"pos":  Vector2(randf_range(0, 1280), 720 if not random_y else randf_range(0, 720)),
 		"vel":  Vector2(randf_range(-10, 10), randf_range(-25, -8)),
@@ -69,8 +69,8 @@ func _draw() -> void:
 	# Corner biome glows
 	var corners := [Vector2(0,0), Vector2(1280,0), Vector2(0,720), Vector2(1280,720)]
 	for i in 4:
-		var c := corners[i]
-		var col := BIOME_COLORS[i]
+		var c: Vector2 = corners[i] as Vector2
+		var col: Color = BIOME_COLORS[i] as Color
 		draw_circle(c, 220, Color(col.r, col.g, col.b, 0.06 + pulse * 0.02))
 
 	# Atmospheric particles
