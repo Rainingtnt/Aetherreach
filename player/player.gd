@@ -247,4 +247,4 @@ func take_damage(amount: int) -> void:
 		GameEvents.player_died.emit()
 		FractureManager.reset()
 		RoomManager.reset()
-		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+		get_tree().change_scene_to_file.call_deferred("res://scenes/main_menu.tscn")

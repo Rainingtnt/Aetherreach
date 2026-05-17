@@ -20,4 +20,4 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player"):
 		body.take_damage(damage)
-		queue_free()
+		queue_free.call_deferred()

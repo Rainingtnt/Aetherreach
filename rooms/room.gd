@@ -363,12 +363,11 @@ func _add_healing_zone() -> void:
 	zcs.shape = circ
 	zone.add_child(zcs)
 	add_child(zone)
-	var used := false
 	zone.body_entered.connect(func(b: Node2D):
-		if b.is_in_group("player") and not used:
-			used = true
+		if b.is_in_group("player"):
 			b.set("health", b.get("max_health"))
 			GameEvents.player_hit.emit(b.get("max_health"), b.get("max_health"))
+			zone.call_deferred("queue_free")
 	)
 
 func _add_shrine() -> void:
@@ -379,11 +378,10 @@ func _add_shrine() -> void:
 	zcs.shape = circ
 	zone.add_child(zcs)
 	add_child(zone)
-	var used := false
 	zone.body_entered.connect(func(b: Node2D):
-		if b.is_in_group("player") and not used:
-			used = true
+		if b.is_in_group("player"):
 			FractureManager.add_fracture(randi() % 4)
+			zone.call_deferred("queue_free")
 	)
 
 func _add_treasure() -> void:

@@ -91,4 +91,4 @@ func take_damage(amount: int) -> void:
 			get_parent().add_child(frac)
 			frac.setup(FractureManager.Element.FIRE if randf() < 0.5 else FractureManager.Element.STORM, global_position)
 		GameEvents.enemy_died.emit(global_position, 1)
-		queue_free()
+		queue_free.call_deferred()

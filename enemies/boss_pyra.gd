@@ -190,4 +190,4 @@ func _die() -> void:
 		parent.add_child(burst)
 	GameEvents.enemy_died.emit(pos, 20)
 	GameEvents.boss_defeated.emit()
-	queue_free()
+	queue_free.call_deferred()

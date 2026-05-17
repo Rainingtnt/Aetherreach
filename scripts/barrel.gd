@@ -65,4 +65,4 @@ func _explode() -> void:
 			get_tree().create_timer(0.12).timeout.connect(func():
 				if is_instance_valid(barrel): barrel._explode()
 			)
-	queue_free()
+	queue_free.call_deferred()

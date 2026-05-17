@@ -30,7 +30,7 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("destructible") and body.has_method("take_damage"):
 		body.take_damage(damage)
-		queue_free()
+		queue_free.call_deferred()
 		return
 	if not body.is_in_group("enemies"):
 		return
@@ -59,7 +59,7 @@ func _on_body_entered(body: Node) -> void:
 		"STEAM":
 			_steam_slow_aoe()
 
-	queue_free()
+	queue_free.call_deferred()
 
 func _chain_lightning(source: Node) -> void:
 	var chain_cnt := 2 if FractureManager.get_synergy() == "TEMPEST" else 1

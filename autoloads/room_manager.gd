@@ -183,7 +183,8 @@ func _swap_room(pos: Vector2i, came_from_dir: String) -> void:
 	room_loaded.emit(pos, data["type"] as String, current_depth)
 
 func _on_room_cleared(pos: Vector2i) -> void:
-	world[pos]["cleared"] = true
+	if world.has(pos):
+		world[pos]["cleared"] = true
 
 func _on_enemy_died(_pos: Vector2, points: int) -> void:
 	total_score += points

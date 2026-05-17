@@ -38,4 +38,4 @@ func take_damage(amount: int) -> void:
 			var frac := FracturePickup.instantiate()
 			get_parent().add_child(frac)
 			frac.setup(randi() % 4, global_position)
-		queue_free()
+		queue_free.call_deferred()

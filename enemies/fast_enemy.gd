@@ -73,4 +73,4 @@ func take_damage(amount: int) -> void:
 			get_parent().add_child(frac)
 			frac.setup(randi() % 4, global_position)
 		GameEvents.enemy_died.emit(global_position, 2)
-		queue_free()
+		queue_free.call_deferred()

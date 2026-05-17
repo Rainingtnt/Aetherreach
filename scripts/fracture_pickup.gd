@@ -17,7 +17,7 @@ func _process(delta: float) -> void:
 	position.y = base_y + sin(float_time * 3.2) * 5.0
 	queue_redraw()
 	if lifetime <= 0:
-		queue_free()
+		queue_free.call_deferred()
 
 func _draw() -> void:
 	var col: Color = FractureManager.ELEMENT_COLORS[element] as Color
@@ -36,4 +36,4 @@ func _ready() -> void:
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player"):
 		FractureManager.add_fracture(element)
-		queue_free()
+		queue_free.call_deferred()

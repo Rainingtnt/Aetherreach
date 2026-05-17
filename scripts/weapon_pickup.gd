@@ -19,7 +19,7 @@ func _ready() -> void:
 	body_entered.connect(func(b: Node2D):
 		if b.is_in_group("player") and b.has_method("equip_weapon"):
 			b.equip_weapon(weapon_key)
-			queue_free()
+			queue_free.call_deferred()
 	)
 	queue_redraw()
 
