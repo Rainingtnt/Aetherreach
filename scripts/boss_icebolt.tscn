@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bssicebolt00001"]
+[gd_scene format=3 uid="uid://vubrlxg3lnwq"]
 
 [ext_resource type="Script" path="res://scripts/boss_icebolt.gd" id="1_icebolt"]
 

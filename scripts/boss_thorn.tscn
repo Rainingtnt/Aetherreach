@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bssthorn000001"]
+[gd_scene format=3 uid="uid://cki501pqoem53"]
 
 [ext_resource type="Script" path="res://scripts/boss_thorn.gd" id="1_thorn"]
 

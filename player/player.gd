@@ -25,6 +25,7 @@ var _aura_t     := 0.0
 var _fire_t     := 0.0
 
 var current_weapon: String = "wand"
+var owned_weapons: Array[String] = ["wand"]
 
 var cam_shake_amt := 0.0
 var cam_shake_dur := 0.0
@@ -99,6 +100,7 @@ func _process(delta: float) -> void:
 	_fire_t -= delta
 	if not can_move:
 		return
+	_handle_weapon_switch()
 	if Input.is_action_pressed("shoot") and _fire_t <= 0.0:
 		_shoot()
 	_handle_inv(delta)
@@ -199,7 +201,16 @@ func _thunderfire_trail() -> void:
 	get_parent().add_child(burst)
 
 # ── Weapons ──────────────────────────────────────────────────────────────────
+func _handle_weapon_switch() -> void:
+	var slots := ["weapon_1", "weapon_2", "weapon_3", "weapon_4"]
+	for i in slots.size():
+		if Input.is_action_just_pressed(slots[i]):
+			if i < owned_weapons.size():
+				equip_weapon(owned_weapons[i])
+
 func equip_weapon(key: String) -> void:
+	if not owned_weapons.has(key):
+		owned_weapons.append(key)
 	current_weapon = key
 	var wdata := WeaponManager.get_weapon(key)
 	GameEvents.weapon_changed.emit(key, wdata["name"] as String, wdata["color"] as Color)
@@ -265,4 +276,5 @@ func take_damage(amount: int) -> void:
 		FractureManager.reset()
 		RoomManager.reset()
 		RelicManager.reset()
+		owned_weapons = ["wand"]
 		get_tree().change_scene_to_file.call_deferred("res://scenes/main_menu.tscn")

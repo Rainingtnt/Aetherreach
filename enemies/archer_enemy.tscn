@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://archerenemy0001"]
+[gd_scene format=3 uid="uid://p67v6iuaoqdc"]
 
 [ext_resource type="Script" path="res://enemies/archer_enemy.gd" id="1_archer"]
 

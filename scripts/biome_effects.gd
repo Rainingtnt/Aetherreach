@@ -14,17 +14,12 @@ var _t:       float   = 0.0
 var _flash_t: float   = 0.0   # lightning flash countdown
 
 var _particles: Array = []
+var _flicker: Array = []         # initialized in _ready
+var _torch_positions: Array = [] # initialized in setup
 
-# Torch flicker state (for embers)
-var _flicker: Array = [
-	{"phase": randf() * TAU, "speed": randf_range(3.5, 6.0)},
-	{"phase": randf() * TAU, "speed": randf_range(3.5, 6.0)},
-	{"phase": randf() * TAU, "speed": randf_range(3.5, 6.0)},
-	{"phase": randf() * TAU, "speed": randf_range(3.5, 6.0)},
-]
-
-# Torch positions — mirrors the wall props in room.gd (approximate)
-var _torch_positions: Array = []
+func _ready() -> void:
+	for _i in 4:
+		_flicker.append({"phase": randf() * TAU, "speed": randf_range(3.5, 6.0)})
 
 func setup(biome: Dictionary) -> void:
 	_fx_type = biome.get("fx_type", "embers") as String
@@ -52,7 +47,7 @@ func _make_particle(scatter: bool) -> Dictionary:
 		"embers":
 			p = {
 				"pos":   Vector2(randf_range(-HW, HW),
-				                 scatter ? randf_range(-HH, HH) : HH),
+				                 randf_range(-HH, HH) if scatter else HH),
 				"vel":   Vector2(randf_range(-8, 8), randf_range(-30, -10)),
 				"size":  randf_range(1.5, 3.5),
 				"life":  randf_range(2.0, 5.0),
@@ -63,7 +58,7 @@ func _make_particle(scatter: bool) -> Dictionary:
 		"snow":
 			p = {
 				"pos":   Vector2(randf_range(-HW, HW),
-				                 scatter ? randf_range(-HH, HH) : -HH),
+				                 randf_range(-HH, HH) if scatter else -HH),
 				"vel":   Vector2(randf_range(-6, 6), randf_range(8, 22)),
 				"size":  randf_range(1.8, 4.0),
 				"life":  randf_range(3.0, 7.0),
@@ -74,7 +69,7 @@ func _make_particle(scatter: bool) -> Dictionary:
 		"spores":
 			p = {
 				"pos":   Vector2(randf_range(-HW, HW),
-				                 scatter ? randf_range(-HH, HH) : HH * 0.5),
+				                 randf_range(-HH, HH) if scatter else HH * 0.5),
 				"vel":   Vector2(randf_range(-5, 5), randf_range(-12, -3)),
 				"size":  randf_range(2.5, 5.0),
 				"life":  randf_range(4.0, 8.0),
@@ -86,7 +81,7 @@ func _make_particle(scatter: bool) -> Dictionary:
 		"lightning":
 			p = {
 				"pos":   Vector2(randf_range(-HW, HW),
-				                 scatter ? randf_range(-HH, HH) : randf_range(-HH, HH)),
+				                 randf_range(-HH, HH)),
 				"vel":   Vector2(randf_range(-15, 15), randf_range(-15, 15)),
 				"size":  randf_range(1.2, 2.8),
 				"life":  randf_range(0.5, 2.0),

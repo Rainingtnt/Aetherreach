@@ -22,13 +22,13 @@ const COMBAT_TEMPLATES: Array = [
 	{
 		"obstacles": [],
 		"spawns": [Vector2(-320,-180),Vector2(320,-180),Vector2(-320,180),
-		           Vector2(320,180),Vector2(0,-220),Vector2(0,220)],
+				   Vector2(320,180),Vector2(0,-220),Vector2(0,220)],
 	},
 	# 1 — Central block
 	{
 		"obstacles": [{"pos":Vector2(0,0),"size":Vector2(110,110)}],
 		"spawns": [Vector2(-310,-160),Vector2(310,-160),Vector2(-310,160),
-		           Vector2(310,160),Vector2(370,0),Vector2(-370,0)],
+				   Vector2(310,160),Vector2(370,0),Vector2(-370,0)],
 	},
 	# 2 — Four corner pillars
 	{
@@ -47,7 +47,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2( 160,0),"size":Vector2(55,220)},
 		],
 		"spawns": [Vector2(-360,-180),Vector2(360,-180),Vector2(-360,180),
-		           Vector2(360,180),Vector2(0,-240),Vector2(0,240)],
+				   Vector2(360,180),Vector2(0,-240),Vector2(0,240)],
 	},
 	# 4 — Two horizontal walls (top/bottom corridors)
 	{
@@ -56,7 +56,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(0, 140),"size":Vector2(200,50)},
 		],
 		"spawns": [Vector2(-350,-50),Vector2(350,-50),Vector2(-350,50),
-		           Vector2(350,50),Vector2(0,0)],
+				   Vector2(350,50),Vector2(0,0)],
 	},
 	# 5 — L-shaped wall
 	{
@@ -65,7 +65,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(-80, 40),"size":Vector2(55,110)},
 		],
 		"spawns": [Vector2(250,-180),Vector2(300,80),Vector2(-320,200),
-		           Vector2(-320,-200),Vector2(200,200),Vector2(0,-220)],
+				   Vector2(-320,-200),Vector2(200,200),Vector2(0,-220)],
 	},
 	# 6 — Scattered rubble (many small pillars)
 	{
@@ -78,7 +78,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(0, 100),   "size":Vector2(50,50)},
 		],
 		"spawns": [Vector2(-340,-200),Vector2(340,-200),Vector2(-340,200),
-		           Vector2(340,200),Vector2(-180,0),Vector2(180,0)],
+				   Vector2(340,200),Vector2(-180,0),Vector2(180,0)],
 	},
 	# 7 — T-junction obstacle
 	{
@@ -87,7 +87,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(0, 50),"size":Vector2(55,140)},
 		],
 		"spawns": [Vector2(-340,-200),Vector2(340,-200),Vector2(-340,150),
-		           Vector2(340,150),Vector2(-200,-80 + 100),Vector2(200,-80 + 100)],
+				   Vector2(340,150),Vector2(-200,-80 + 100),Vector2(200,-80 + 100)],
 	},
 	# 8 — Central ring of pillars
 	{
@@ -98,7 +98,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(0,-110),"size":Vector2(55,55)},
 		],
 		"spawns": [Vector2(-350,-200),Vector2(350,-200),Vector2(-350,200),
-		           Vector2(350,200),Vector2(0,0)],
+				   Vector2(350,200),Vector2(0,0)],
 	},
 	# 9 — Fortress: outer ring + center safe zone
 	{
@@ -110,7 +110,7 @@ const COMBAT_TEMPLATES: Array = [
 			{"pos":Vector2(0,0),      "size":Vector2(90,90)},
 		],
 		"spawns": [Vector2(-380,0),Vector2(380,0),Vector2(0,-255),
-		           Vector2(0,255),Vector2(-200,-100),Vector2(200,100)],
+				   Vector2(0,255),Vector2(-200,-100),Vector2(200,100)],
 	},
 ]
 

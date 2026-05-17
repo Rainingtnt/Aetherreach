@@ -21,7 +21,7 @@ const FracturePickup  = preload("res://scripts/fracture_pickup.tscn")
 const RelicPickupScript = preload("res://scripts/relic_pickup.gd")
 const CrateScript        = preload("res://scripts/crate.gd")
 const BarrelScript       = preload("res://scripts/barrel.gd")
-const BiomeEffectsScript = preload("res://scripts/biome_effects.gd")
+const BiomeEffectsScript = "res://scripts/biome_effects.gd"  # loaded at runtime to avoid preload parse cycle
 const WeaponPickupScript = preload("res://scripts/weapon_pickup.gd")
 
 # --- State ---
@@ -704,7 +704,7 @@ func _add_treasure() -> void:
 # ---------------------------------------------------------------
 func _add_biome_effects() -> void:
 	var fx := Node2D.new()
-	fx.set_script(BiomeEffectsScript)
+	fx.set_script(load(BiomeEffectsScript))
 	add_child(fx)
 	fx.setup(_biome)
 

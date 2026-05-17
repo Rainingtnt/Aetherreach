@@ -33,10 +33,10 @@ func _ready() -> void:
 	GameEvents.weapon_changed.connect(func(_k: String, wn: String, wc: Color):
 		weapon_name = wn; weapon_color = wc; queue_redraw()
 	)
-	GameEvents.relic_gained.connect(func(key: String, name: String):
+	GameEvents.relic_gained.connect(func(key: String, relic_name: String):
 		var rdata := RelicManager.RELICS.get(key, {}) as Dictionary
 		_relic_announce_col  = rdata.get("color", Color.WHITE) as Color
-		_relic_announce_text = "RELIC: " + name
+		_relic_announce_text = "RELIC: " + relic_name
 		_relic_announce_timer = 3.0
 		queue_redraw()
 	)
@@ -154,11 +154,8 @@ func _draw() -> void:
 			HORIZONTAL_ALIGNMENT_CENTER, 1280, 32,
 			Color(_relic_announce_col.r, _relic_announce_col.g, _relic_announce_col.b, alpha))
 
-	# Weapon display
-	if weapon_name != "":
-		draw_circle(Vector2(20, 668), 7, weapon_color)
-		draw_circle(Vector2(20, 668), 4, Color.WHITE.lerp(weapon_color, 0.3))
-		draw_string(font, Vector2(32, 673), weapon_name, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, weapon_color)
+	# Weapon slots (bottom-left)
+	_draw_weapon_slots(font)
 
 	# Boss health bar
 	if boss_active and boss_max_hp > 0:
@@ -202,6 +199,40 @@ func _draw_relic_bar(font: Font) -> void:
 		draw_circle(Vector2(rx, y), 8, col)
 		draw_circle(Vector2(rx, y), 4.5, col.lightened(0.3))
 		draw_circle(Vector2(rx, y), 2, Color.WHITE)
+
+func _draw_weapon_slots(font: Font) -> void:
+	var player_nodes := get_tree().get_nodes_in_group("player") if get_tree() else []
+	var owned: Array = []
+	if player_nodes.size() > 0:
+		var p := player_nodes[0]
+		if "owned_weapons" in p:
+			owned = p.owned_weapons as Array
+	if owned.is_empty():
+		owned = ["wand"]
+
+	for i in owned.size():
+		var key := owned[i] as String
+		var wdata := WeaponManager.get_weapon(key)
+		var wcol  := wdata["color"] as Color
+		var wname := wdata["name"] as String
+		var rx    := 14.0 + i * 130.0
+		var ry    := 660.0
+		var is_active := (key == weapon_name.to_lower().replace(" ", "_") or wname == weapon_name)
+
+		# Slot background
+		var slot_col := Color(0.12, 0.12, 0.18, 0.85) if not is_active else Color(wcol.r * 0.3, wcol.g * 0.3, wcol.b * 0.3, 0.90)
+		draw_rect(Rect2(rx - 2, ry - 2, 120, 28), slot_col)
+		draw_rect(Rect2(rx - 2, ry - 2, 120, 28), wcol if is_active else Color(0.3, 0.3, 0.4, 0.5), false, 1.2)
+
+		# Key number
+		draw_string(font, Vector2(rx + 3, ry + 13), "[%d]" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+			Color(0.6, 0.6, 0.7, 0.8))
+		# Color dot
+		draw_circle(Vector2(rx + 24, ry + 10), 5, wcol)
+		draw_circle(Vector2(rx + 24, ry + 10), 2.5, Color.WHITE.lerp(wcol, 0.4))
+		# Name
+		draw_string(font, Vector2(rx + 33, ry + 14), wname, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			11 if is_active else 10, wcol if is_active else Color(0.7, 0.7, 0.8))
 
 func _draw_minimap(_font: Font) -> void:
 	if RoomManager.world.is_empty():
