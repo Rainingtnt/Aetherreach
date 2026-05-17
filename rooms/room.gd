@@ -18,13 +18,15 @@ const FLOOR_GRID  := Color(1, 1, 1, 0.038)
 const PIT_COLOR   := Color(0.06, 0.03, 0.12)
 
 # --- Enemy scenes ---
-const EnemyScene   = preload("res://enemies/enemy.tscn")
-const RangedScene  = preload("res://enemies/ranged_enemy.tscn")
-const FastScene    = preload("res://enemies/fast_enemy.tscn")
-const TankScene    = preload("res://enemies/tank_enemy.tscn")
-const HealerScene  = preload("res://enemies/healer_enemy.tscn")
+const EnemyScene    = preload("res://enemies/enemy.tscn")
+const RangedScene   = preload("res://enemies/ranged_enemy.tscn")
+const FastScene     = preload("res://enemies/fast_enemy.tscn")
+const TankScene     = preload("res://enemies/tank_enemy.tscn")
+const HealerScene   = preload("res://enemies/healer_enemy.tscn")
+const BossPyra      = preload("res://enemies/boss_pyra.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
-const CrateScript  = preload("res://scripts/crate.gd")
+const CrateScript   = preload("res://scripts/crate.gd")
+const AmbientScript = preload("res://scripts/ambient_particles.gd")
 
 # --- State ---
 var room_type   := "combat"
@@ -35,9 +37,10 @@ var pre_cleared := false
 var _locked_dirs: Dictionary = {}
 var _blockers:    Dictionary = {}
 var _template:    Dictionary = {}
+var _biome:       Dictionary = {}
 var _enemies_alive := 0
 var _player: Node2D = null
-var _room_alive := true   # guards against tree_exited during room teardown
+var _room_alive := true
 
 signal room_cleared
 
@@ -53,17 +56,22 @@ func setup(type: String, exit_dirs: Array, tmpl: int, already_cleared: bool) -> 
 func on_enter(player: Node2D) -> void:
 	_player = player
 	_template = RoomManager.COMBAT_TEMPLATES[template_i] as Dictionary
+	_biome = BiomeManager.get_biome(RoomManager.current_depth)
 	_build_walls()
 	_build_doors()
 	_build_obstacles()
 	_build_env_objects()
 	_build_special()
+	_add_ambient_particles()
 	queue_redraw()
 
 	if room_type in ["combat", "boss"] and not pre_cleared:
 		_lock_all()
 		await get_tree().create_timer(0.28).timeout
-		_spawn_enemies()
+		if room_type == "boss":
+			_spawn_boss()
+		else:
+			_spawn_enemies()
 	else:
 		_unlock_all()
 
@@ -75,13 +83,17 @@ func _notification(what: int) -> void:
 # Visual
 # ---------------------------------------------------------------
 func _draw() -> void:
-	var floor_col: Color = ROOM_COLORS.get(room_type, ROOM_COLORS["combat"]) as Color
+	# Biome-themed floor
+	var floor_col: Color = _biome.get("floor", ROOM_COLORS.get(room_type, ROOM_COLORS["combat"]) as Color) as Color
+	if room_type == "boss":
+		floor_col = floor_col.darkened(0.18)
 	draw_rect(Rect2(-HW, -HH, HW * 2, HH * 2), floor_col)
 
+	var grid_col: Color = _biome.get("grid", FLOOR_GRID) as Color
 	for x in range(int(-HW), int(HW) + 1, 60):
-		draw_line(Vector2(x, -HH), Vector2(x, HH), FLOOR_GRID, 1)
+		draw_line(Vector2(x, -HH), Vector2(x, HH), grid_col, 1)
 	for y in range(int(-HH), int(HH) + 1, 60):
-		draw_line(Vector2(-HW, y), Vector2(HW, y), FLOOR_GRID, 1)
+		draw_line(Vector2(-HW, y), Vector2(HW, y), grid_col, 1)
 
 	_draw_wall_segments()
 
@@ -89,12 +101,14 @@ func _draw() -> void:
 		var obs := raw_obs as Dictionary
 		var op  := obs["pos"]  as Vector2
 		var os  := obs["size"] as Vector2
-		draw_rect(Rect2(op - os * 0.5, os), WALL_COLOR)
+		var wc: Color = _biome.get("wall", WALL_COLOR) as Color
+		draw_rect(Rect2(op - os * 0.5, os), wc)
 		draw_rect(Rect2(op - os * 0.5, os), Color(1, 1, 1, 0.07), false, 1.5)
 
 	for dir in exits:
 		var locked: bool = _locked_dirs.get(dir, false) as bool
-		var col := Color(0.85, 0.18, 0.18, 0.85) if locked else Color(0.18, 0.85, 0.45, 0.85)
+		var col: Color = (_biome.get("door_locked", Color(0.85,0.18,0.18,0.85)) as Color) if locked \
+		               else (_biome.get("door_open",   Color(0.18,0.85,0.45,0.85)) as Color)
 		var p   := _door_pos(dir)
 		var is_ns := dir in ["north", "south"]
 		var sz  := Vector2(DH * 2, WT) if is_ns else Vector2(WT, DH * 2)
@@ -120,11 +134,15 @@ func _draw() -> void:
 				draw_line(p, p + _dir_vec(dir) * 20, Color(0.5, 0.75, 1.0, 0.7), 2)
 
 func _draw_wall_segments() -> void:
+	var wc: Color = _biome.get("wall", WALL_COLOR) as Color
+	var border_col: Color = _biome.get("border", Color(0.5, 0.6, 1, 0.12)) as Color
 	for dir in ["north", "south", "east", "west"]:
 		for s in _wall_segs(dir, dir in exits):
 			var wp := s[0] as Vector2
 			var ws := s[1] as Vector2
-			draw_rect(Rect2(wp - ws * 0.5, ws), WALL_COLOR)
+			draw_rect(Rect2(wp - ws * 0.5, ws), wc)
+	# Room border glow
+	draw_rect(Rect2(-HW, -HH, HW * 2, HH * 2), border_col, false, 3)
 
 # ---------------------------------------------------------------
 # Walls
@@ -424,6 +442,20 @@ func _spawn(scene: PackedScene, pos: Vector2) -> void:
 
 func _rand_pos() -> Vector2:
 	return Vector2(randf_range(-360, 360), randf_range(-220, 220))
+
+func _spawn_boss() -> void:
+	var boss := BossPyra.instantiate()
+	boss.position = Vector2(0, -80)
+	add_child(boss)
+	_enemies_alive = 1
+	boss.tree_exited.connect(_on_enemy_removed)
+
+func _add_ambient_particles() -> void:
+	var pcol: Color = _biome.get("particle", Color(0.6, 0.7, 1.0)) as Color
+	var ap := Node2D.new()
+	ap.set_script(AmbientScript)
+	add_child(ap)
+	ap.setup(pcol)
 
 # KEY FIX: use tree_exited + _room_alive guard instead of GameEvents signal counting
 func _on_enemy_removed() -> void:

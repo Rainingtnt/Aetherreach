@@ -10,11 +10,17 @@ var wave_announce_text := ""
 var wave_announce_timer := 0.0
 const ANNOUNCE_DURATION := 2.2
 
+var boss_hp     := 0
+var boss_max_hp := 0
+var boss_active := false
+
 func _ready() -> void:
 	GameEvents.player_hit.connect(func(h: int, m: int): current_health = h; max_health = m; queue_redraw())
 	GameEvents.score_changed.connect(func(s: int): score_label.text = "SCORE  %d" % s)
 	FractureManager.fractures_changed.connect(func(): queue_redraw())
 	RoomManager.room_loaded.connect(_on_room_loaded)
+	GameEvents.boss_hp_changed.connect(func(c: int, m: int): boss_hp = c; boss_max_hp = m; boss_active = true; queue_redraw())
+	GameEvents.boss_defeated.connect(func(): boss_active = false; queue_redraw())
 
 	score_label = _make_label(Vector2(980, 10), HORIZONTAL_ALIGNMENT_RIGHT, 290)
 	score_label.text = "SCORE  0"
@@ -44,7 +50,16 @@ func _make_label(pos: Vector2, align := HORIZONTAL_ALIGNMENT_LEFT, min_w := 0) -
 func _on_room_loaded(_pos: Vector2i, type: String, depth: int) -> void:
 	depth_label.text = "DEPTH  %d" % depth
 	room_label.text = type.to_upper()
-	wave_announce_text = _room_announce(type, depth)
+	boss_active = false  # Reset boss bar between rooms
+
+	# Announce biome transitions
+	var curr_key := BiomeManager.get_key(depth)
+	var prev_key := BiomeManager.get_key(maxi(0, depth - 1))
+	if curr_key != prev_key or depth == 1:
+		var biome := BiomeManager.get_biome(depth)
+		wave_announce_text = "ENTERING  " + (biome["name"] as String)
+	else:
+		wave_announce_text = _room_announce(type, depth)
 	wave_announce_timer = ANNOUNCE_DURATION
 	queue_redraw()
 
@@ -94,6 +109,19 @@ func _draw() -> void:
 		var alpha := 4.0 * t * (1.0 - t)
 		draw_string(font, Vector2(0, 375), wave_announce_text,
 			HORIZONTAL_ALIGNMENT_CENTER, 1280, 44, Color(1, 0.88, 0.3, alpha))
+
+	# Boss health bar
+	if boss_active and boss_max_hp > 0:
+		var bp := float(boss_hp) / float(boss_max_hp)
+		var bw := 500.0
+		var bx := 640.0 - bw * 0.5
+		var by := 640.0
+		draw_rect(Rect2(bx - 2, by - 2, bw + 4, 18), Color(0.05, 0.03, 0.02))
+		draw_rect(Rect2(bx, by, bw, 14), Color(0.18, 0.08, 0.06))
+		draw_rect(Rect2(bx, by, bw * bp, 14), Color(1.0, 0.28, 0.04))
+		draw_rect(Rect2(bx, by, bw, 14), Color(0.9, 0.35, 0.08, 0.5), false, 1.5)
+		draw_string(font, Vector2(640, by - 4), "PRINCESS PYRA", HORIZONTAL_ALIGNMENT_CENTER,
+			-1, 13, Color(1.0, 0.65, 0.12))
 
 	# Minimap
 	_draw_minimap(font)

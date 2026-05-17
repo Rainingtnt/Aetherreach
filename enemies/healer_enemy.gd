@@ -1,6 +1,6 @@
 extends CharacterBody2D
 
-# Cowardly. Flees player. Pulses to heal nearby allies. Kill first.
+# Healer — flees player, cross silhouette, pulses heal ring to allies
 
 const SPEED         := 55.0
 const FLEE_RANGE    := 220.0
@@ -8,14 +8,14 @@ const HEAL_INTERVAL := 3.5
 const HEAL_RANGE    := 160.0
 const HEAL_AMOUNT   := 1
 
-var health     := 5
 var max_health := 5
+var health     := 5
 var player: Node2D = null
-var heal_timer  := HEAL_INTERVAL * 0.5
-var pulse_t     := 0.0   # 0 = no pulse, >0 = animating
-var hit_flash   := false
-var slow_timer  := 0.0
-var speed_mult  := 1.0
+var heal_t     := HEAL_INTERVAL * 0.5
+var pulse_t    := 0.0
+var hit_flash  := false
+var speed_mult := 1.0
+var slow_timer := 0.0
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
@@ -28,17 +28,22 @@ func _ready() -> void:
 		player = pl[0]
 
 func _draw() -> void:
-	var col := Color(0.85, 1.0, 0.85) if hit_flash else Color(0.18, 0.78, 0.30)
-	draw_circle(Vector2.ZERO, 13, col)
-	draw_rect(Rect2(-2.5, -9, 5, 18), Color(1, 1, 1, 0.85))
-	draw_rect(Rect2(-9, -2.5, 18, 5), Color(1, 1, 1, 0.85))
+	var col := Color(0.82, 1.0, 0.82) if hit_flash else Color(0.16, 0.78, 0.28)
+	# Pulse ring
 	if pulse_t > 0:
-		var ring_r := (1.0 - pulse_t) * HEAL_RANGE
-		draw_arc(Vector2.ZERO, ring_r, 0.0, TAU, 32, Color(0.2, 0.9, 0.35, pulse_t * 0.5), 2.5)
+		draw_arc(Vector2.ZERO, (1.0 - pulse_t) * HEAL_RANGE, 0, TAU, 32,
+			Color(0.18, 0.88, 0.32, pulse_t * 0.45), 2.5)
+	# Body — rounded cross
+	draw_rect(Rect2(-5, -14, 10, 28), col)
+	draw_rect(Rect2(-14, -5, 28, 10), col)
+	draw_circle(Vector2.ZERO, 7, col)
+	# Inner white cross
+	draw_rect(Rect2(-2, -11, 4, 22), Color(1, 1, 1, 0.65))
+	draw_rect(Rect2(-11, -2, 22, 4), Color(1, 1, 1, 0.65))
 	if health < max_health:
 		var pct := float(health) / float(max_health)
-		draw_rect(Rect2(-13, -21, 26, 3), Color(0.12, 0.12, 0.12))
-		draw_rect(Rect2(-13, -21, 26.0 * pct, 3), Color(0.2, 0.9, 0.3))
+		draw_rect(Rect2(-14, -22, 28, 3), Color(0.12, 0.12, 0.12))
+		draw_rect(Rect2(-14, -22, 28.0 * pct, 3), Color(0.2, 0.9, 0.3))
 
 func _process(delta: float) -> void:
 	if pulse_t > 0:
@@ -49,32 +54,25 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if slow_timer > 0:
 		slow_timer -= delta
-		if slow_timer <= 0:
-			speed_mult = 1.0
-	if player == null:
-		return
-	heal_timer -= delta
-	if heal_timer <= 0:
-		heal_timer = HEAL_INTERVAL
+		if slow_timer <= 0: speed_mult = 1.0
+	if player == null: return
+	heal_t -= delta
+	if heal_t <= 0:
+		heal_t = HEAL_INTERVAL
 		_pulse_heal()
-
 	var dist := global_position.distance_to(player.global_position)
 	var dir  := (global_position - player.global_position).normalized()
-	if dist < FLEE_RANGE:
-		velocity = dir * SPEED * speed_mult
-	else:
-		velocity = velocity.move_toward(Vector2.ZERO, SPEED * 4 * delta)
+	velocity = (dir * SPEED * speed_mult) if dist < FLEE_RANGE else \
+		velocity.move_toward(Vector2.ZERO, SPEED * 4 * delta)
 	move_and_slide()
 
 func _pulse_heal() -> void:
 	pulse_t = 1.0
 	queue_redraw()
-	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy == self:
-			continue
-		if enemy.global_position.distance_to(global_position) <= HEAL_RANGE:
-			if enemy.has_method("heal"):
-				enemy.heal(HEAL_AMOUNT)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e == self: continue
+		if e.global_position.distance_to(global_position) <= HEAL_RANGE and e.has_method("heal"):
+			e.heal(HEAL_AMOUNT)
 
 func apply_slow(duration: float) -> void:
 	speed_mult = 0.35
@@ -90,9 +88,10 @@ func take_damage(amount: int) -> void:
 	queue_redraw()
 	get_tree().create_timer(0.1).timeout.connect(func(): hit_flash = false; queue_redraw())
 	if health <= 0:
+		Juice.hit_stop(0.045)
 		var burst := DeathBurst.instantiate()
 		burst.global_position = global_position
-		burst.color = Color(0.18, 0.78, 0.30)
+		burst.color = Color(0.16, 0.78, 0.28)
 		get_parent().add_child(burst)
 		if randf() < 0.75:
 			var frac := FracturePickup.instantiate()

@@ -1,18 +1,18 @@
 extends CharacterBody2D
 
-# Fast, fragile, zigzag movement. Dies in one hit. Punishes standing still.
+# Speeder — blade-like silhouette, zigzag movement, one-shot fragile
 
-const SPEED           := 165.0
-const ZIGZAG_AMP      := 85.0
-const ZIGZAG_FREQ     := 4.0
+const SPEED            := 165.0
+const ZIGZAG_AMP       := 85.0
+const ZIGZAG_FREQ      := 4.0
 const CONTACT_COOLDOWN := 0.45
 
 var health     := 1
 var max_health := 1
 var damage     := 1
 var player: Node2D = null
-var zigzag_time   := randf() * TAU  # stagger so enemies don't sync
-var contact_timer := 0.0
+var zigzag_t   := randf() * TAU
+var contact_t  := 0.0
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
@@ -25,38 +25,40 @@ func _ready() -> void:
 		player = pl[0]
 
 func _draw() -> void:
-	var pts := PackedVector2Array([Vector2(0,-10), Vector2(8,0), Vector2(0,10), Vector2(-8,0)])
-	draw_colored_polygon(pts, Color(0.15, 0.92, 0.75))
-	draw_polyline(PackedVector2Array([Vector2(0,-10),Vector2(8,0),Vector2(0,10),Vector2(-8,0),Vector2(0,-10)]),
-		Color(0.5, 1.0, 0.9), 1.2)
+	# Blade/arrowhead body
+	var pts := PackedVector2Array([
+		Vector2(0, -13), Vector2(9, 4),
+		Vector2(4, 8), Vector2(0, 6),
+		Vector2(-4, 8), Vector2(-9, 4),
+	])
+	draw_colored_polygon(pts, Color(0.12, 0.90, 0.72))
+	draw_polyline(PackedVector2Array([Vector2(0,-13),Vector2(9,4),Vector2(0,6),Vector2(-9,4),Vector2(0,-13)]),
+		Color(0.5, 1.0, 0.88, 0.7), 1.2)
+	# Speed streak
+	draw_line(Vector2(0, 6), Vector2(0, 14), Color(0.12, 0.90, 0.72, 0.35), 2)
 
 func _physics_process(delta: float) -> void:
-	if player == null:
-		return
-	zigzag_time  += delta
-	contact_timer -= delta
-	var to_player := (player.global_position - global_position).normalized()
-	var perp      := Vector2(-to_player.y, to_player.x)
-	velocity = (to_player * SPEED + perp * sin(zigzag_time * ZIGZAG_FREQ) * ZIGZAG_AMP).normalized() * SPEED
+	if player == null: return
+	zigzag_t  += delta
+	contact_t -= delta
+	var to_p := (player.global_position - global_position).normalized()
+	var perp := Vector2(-to_p.y, to_p.x)
+	velocity = (to_p * SPEED + perp * sin(zigzag_t * ZIGZAG_FREQ) * ZIGZAG_AMP).normalized() * SPEED
 	move_and_slide()
-	if global_position.distance_to(player.global_position) < 18 and contact_timer <= 0.0:
+	if global_position.distance_to(player.global_position) < 18 and contact_t <= 0.0:
 		player.take_damage(damage)
-		contact_timer = CONTACT_COOLDOWN
+		contact_t = CONTACT_COOLDOWN
 
-func heal(_amount: int) -> void:
-	pass  # one-hit; healing irrelevant
-
-func apply_slow(duration: float) -> void:
-	# Freeze briefly — stuns the zigzag
-	zigzag_time = 0.0
-	await get_tree().create_timer(duration).timeout
+func heal(_a: int) -> void: pass
+func apply_slow(_d: float) -> void: pass
 
 func take_damage(amount: int) -> void:
 	health -= amount
 	if health <= 0:
+		Juice.hit_stop(0.03)
 		var burst := DeathBurst.instantiate()
 		burst.global_position = global_position
-		burst.color = Color(0.15, 0.92, 0.75)
+		burst.color = Color(0.12, 0.90, 0.72)
 		get_parent().add_child(burst)
 		if randf() < 0.35:
 			var frac := FracturePickup.instantiate()
