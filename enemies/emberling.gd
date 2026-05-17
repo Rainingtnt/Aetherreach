@@ -35,7 +35,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_anim_t += delta
 	if _sprite != null:
-		var bounce := abs(sin(_anim_t * 6.0)) * 0.08
+		var bounce: float = abs(sin(_anim_t * 6.0)) * 0.08
 		_sprite.scale = Vector2(0.42 + bounce, 0.42 - bounce * 0.5)
 		_sprite.offset = Vector2(0, -sin(_anim_t * 6.0) * 4.0)
 

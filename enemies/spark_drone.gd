@@ -42,7 +42,7 @@ func _process(delta: float) -> void:
 	if _sprite != null:
 		# Spin the armor ring
 		_sprite.rotation = _anim_t * 1.4
-		var hover := sin(_anim_t * 3.0) * 0.016
+		var hover: float = sin(_anim_t * 3.0) * 0.016
 		_sprite.scale = Vector2(0.44 + hover, 0.44 + hover)
 		if _flash:
 			_sprite.modulate = Color(2.0, 2.0, 0.5)
@@ -50,7 +50,7 @@ func _process(delta: float) -> void:
 			_sprite.modulate = Color(0.5, 0.7, 1.0)
 		else:
 			# Subtle electric pulse
-			var buzz := sin(_anim_t * 18.0) * 0.1 + 0.9
+			var buzz: float = sin(_anim_t * 18.0) * 0.1 + 0.9
 			_sprite.modulate = Color(buzz, buzz, 1.2)
 
 func _physics_process(delta: float) -> void:

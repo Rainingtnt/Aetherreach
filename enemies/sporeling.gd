@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 	if _puff_t > 0:
 		_puff_t -= delta
 	if _sprite != null:
-		var bob := sin(_anim_t * 2.8) * 0.016
+		var bob: float = sin(_anim_t * 2.8) * 0.016
 		_sprite.scale = Vector2(0.44 + bob * 0.5, 0.44 + bob)
 		_sprite.offset = Vector2(0, sin(_anim_t * 2.8) * 2.5)
 		if slow_timer > 0:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://0006a686517d8cb9"]
+[gd_scene format=3 uid="uid://ct83komgtupqy"]
 
 [ext_resource type="Script" path="res://enemies/crystal_raven.gd" id="1_crystal_raven"]
 

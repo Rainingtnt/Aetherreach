@@ -158,7 +158,7 @@ func _rand_circuit(origin: Vector2) -> PackedVector2Array:
 		pts.append(p)
 		if randf() < 0.5:
 			pts.append(p)
-			dir = dir.rotated(PI * 0.5 * (1 if randf() > 0.5 else -1))
+			dir = dir.rotated(PI * 0.5 * (1.0 if randf() > 0.5 else -1.0))
 	return pts
 
 func _bake_wall_props() -> void:
@@ -213,7 +213,7 @@ func _draw() -> void:
 	for dir in exits:
 		var locked: bool = _locked_dirs.get(dir, false) as bool
 		var col: Color = (_biome.get("door_locked", Color(0.85,0.18,0.18,0.85)) as Color) if locked \
-		               else (_biome.get("door_open", Color(0.18,0.85,0.45,0.85)) as Color)
+					   else (_biome.get("door_open", Color(0.18,0.85,0.45,0.85)) as Color)
 		var p   := _door_pos(dir)
 		var is_ns := dir in ["north", "south"]
 		var sz  := Vector2(DH * 2, WT) if is_ns else Vector2(WT, DH * 2)
@@ -291,12 +291,12 @@ func _draw_walls_with_depth() -> void:
 				# Horizontal stone line details
 				for i in range(0, int(r.size.x), 55):
 					draw_line(Vector2(r.position.x + i, r.position.y + 6),
-					          Vector2(r.position.x + i + 42, r.position.y + 6), wd, 0.8)
+							  Vector2(r.position.x + i + 42, r.position.y + 6), wd, 0.8)
 			else:
 				draw_rect(Rect2(r.position, Vector2(4, r.size.y)), wt)
 				for i in range(0, int(r.size.y), 40):
 					draw_line(Vector2(r.position.x + 6, r.position.y + i),
-					          Vector2(r.position.x + 6, r.position.y + i + 30), wd, 0.8)
+							  Vector2(r.position.x + 6, r.position.y + i + 30), wd, 0.8)
 			# Outline
 			draw_rect(r, wt, false, 1.2)
 
@@ -336,7 +336,7 @@ func _draw_ice_crystal(pos: Vector2, col: Color) -> void:
 			Vector2(pos.x + ox + 3, pos.y),
 		]), Color(col.r, col.g, col.b, 0.6 - i * 0.1))
 		draw_line(Vector2(pos.x + ox, pos.y - h),
-		          Vector2(pos.x + ox, pos.y), Color(1, 1, 1, 0.35), 0.8)
+				  Vector2(pos.x + ox, pos.y), Color(1, 1, 1, 0.35), 0.8)
 	# Glow
 	draw_circle(pos + Vector2(0, -7), 10, Color(col.r, col.g, col.b, 0.10))
 
@@ -388,7 +388,7 @@ func _draw_vignette() -> void:
 		# Also darken the floor corners
 		if i < 3:
 			draw_rect(Rect2(-HW + inset * 0.3, -HH + inset * 0.3,
-			               (HW - inset * 0.3) * 2, (HH - inset * 0.3) * 2),
+						   (HW - inset * 0.3) * 2, (HH - inset * 0.3) * 2),
 				Color(0, 0, 0, alpha * 0.5), false, 40.0 - t * 35.0)
 
 func _draw_room_type_dressing() -> void:
@@ -438,7 +438,7 @@ func _draw_room_type_dressing() -> void:
 			var pts_b: Array[Vector2] = []
 			for i in 5:
 				pts_b.append(Vector2(cos(-PI * 0.5 + i * TAU / 5.0),
-				                     sin(-PI * 0.5 + i * TAU / 5.0)) * 52)
+									 sin(-PI * 0.5 + i * TAU / 5.0)) * 52)
 			for i in 5:
 				draw_line(pts_b[i], pts_b[(i + 2) % 5], Color(0.9, 0.15, 0.1, 0.28), 1.2)
 				draw_circle(pts_b[i], 3.5, Color(0.9, 0.15, 0.1, 0.55))
@@ -466,22 +466,22 @@ func _wall_segs(dir: String, has_exit: bool) -> Array:
 		"north":
 			if has_exit:
 				return [[Vector2(-(HW+DH)*0.5,-HH+WT*0.5),Vector2(HW-DH,WT)],
-				        [Vector2( (HW+DH)*0.5,-HH+WT*0.5),Vector2(HW-DH,WT)]]
+						[Vector2( (HW+DH)*0.5,-HH+WT*0.5),Vector2(HW-DH,WT)]]
 			return [[Vector2(0,-HH+WT*0.5),Vector2(HW*2,WT)]]
 		"south":
 			if has_exit:
 				return [[Vector2(-(HW+DH)*0.5,HH-WT*0.5),Vector2(HW-DH,WT)],
-				        [Vector2( (HW+DH)*0.5,HH-WT*0.5),Vector2(HW-DH,WT)]]
+						[Vector2( (HW+DH)*0.5,HH-WT*0.5),Vector2(HW-DH,WT)]]
 			return [[Vector2(0,HH-WT*0.5),Vector2(HW*2,WT)]]
 		"east":
 			if has_exit:
 				return [[Vector2(HW-WT*0.5,-(HH+DH)*0.5),Vector2(WT,HH-DH)],
-				        [Vector2(HW-WT*0.5, (HH+DH)*0.5),Vector2(WT,HH-DH)]]
+						[Vector2(HW-WT*0.5, (HH+DH)*0.5),Vector2(WT,HH-DH)]]
 			return [[Vector2(HW-WT*0.5,0),Vector2(WT,HH*2)]]
 		"west":
 			if has_exit:
 				return [[Vector2(-HW+WT*0.5,-(HH+DH)*0.5),Vector2(WT,HH-DH)],
-				        [Vector2(-HW+WT*0.5, (HH+DH)*0.5),Vector2(WT,HH-DH)]]
+						[Vector2(-HW+WT*0.5, (HH+DH)*0.5),Vector2(WT,HH-DH)]]
 			return [[Vector2(-HW+WT*0.5,0),Vector2(WT,HH*2)]]
 	return []
 

@@ -270,8 +270,8 @@ func _draw_minimap(_font: Font) -> void:
 
 	for raw_pos in RoomManager.world:
 		var gp  := raw_pos as Vector2i
-		var visible := RoomManager.visited.has(raw_pos) or show_all
-		if not visible:
+		var is_visible := RoomManager.visited.has(raw_pos) or show_all
+		if not is_visible:
 			# Show unvisited rooms as dim dots if compass active
 			continue
 		var data: Dictionary = RoomManager.world[raw_pos] as Dictionary

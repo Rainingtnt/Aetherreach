@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://37ff562b630fa9df"]
+[gd_scene format=3 uid="uid://ei2ap2hy6qed"]
 
 [ext_resource type="Script" path="res://enemies/sporeling.gd" id="1_sporeling"]
 

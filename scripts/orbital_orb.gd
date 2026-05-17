@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var pulse := sin(_t * 3.0) * 0.15 + 0.85
+	var pulse: float = sin(_t * 3.0) * 0.15 + 0.85
 	# Glow halo
 	draw_circle(Vector2.ZERO, 14 * pulse, Color(_col.r, _col.g, _col.b, 0.18))
 	# Thorn body
