@@ -69,7 +69,7 @@ func _chain_lightning(source: Node) -> void:
 	)
 	candidates.sort_custom(func(a, b):
 		return a.global_position.distance_to(source.global_position) < \
-		       b.global_position.distance_to(source.global_position)
+			   b.global_position.distance_to(source.global_position)
 	)
 	for e in candidates.slice(0, chain_cnt):
 		e.take_damage(damage)
