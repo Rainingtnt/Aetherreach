@@ -267,8 +267,8 @@ func _draw_lightning() -> void:
 
 	# Random arc between particles (when there are enough)
 	if _particles.size() >= 2 and sin(_t * 12.0) > 0.92:
-		var a := _particles[randi() % _particles.size()]
-		var b := _particles[randi() % _particles.size()]
+		var a: Dictionary = _particles[randi() % _particles.size()]
+		var b: Dictionary = _particles[randi() % _particles.size()]
 		var pa := a["pos"] as Vector2
 		var pb := b["pos"] as Vector2
 		if pa.distance_to(pb) < 180:
