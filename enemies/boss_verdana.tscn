@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://bssverdana00001"]
+
+[ext_resource type="Script" path="res://enemies/boss_verdana.gd" id="1_verdana"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 18.0
+height = 36.0
+
+[node name="BossVerdana" type="CharacterBody2D"]
+script = ExtResource("1_verdana")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")

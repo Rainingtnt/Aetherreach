@@ -101,7 +101,6 @@ func _process(delta: float) -> void:
 		return
 	if Input.is_action_pressed("shoot") and _fire_t <= 0.0:
 		_shoot()
-		_fire_t = (WeaponManager.get_weapon(current_weapon)["fire_rate"] as float)
 	_handle_inv(delta)
 	_handle_regen(delta)
 	_handle_synergy_passives(delta)
@@ -128,8 +127,9 @@ func _physics_process(delta: float) -> void:
 
 func _move(delta: float) -> void:
 	var inp := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var effective_speed := SPEED * speed_mult * RelicManager.get_speed_mult()
 	if inp != Vector2.ZERO:
-		velocity = velocity.move_toward(inp * SPEED * speed_mult, ACCELERATION * delta)
+		velocity = velocity.move_toward(inp * effective_speed, ACCELERATION * delta)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, FRICTION * delta)
 
@@ -208,24 +208,54 @@ func _shoot() -> void:
 	var wdata   := WeaponManager.get_weapon(current_weapon)
 	var count   : int   = wdata["count"]   as int
 	var spread  : float = wdata["spread"]  as float
-	var spd     : float = (wdata["speed"]  as float) + FractureManager.get_projectile_speed_bonus()
-	var dmg     : int   = (wdata["damage"] as int)   + FractureManager.get_damage_bonus()
+	var base_spd: float = (wdata["speed"]  as float) + FractureManager.get_projectile_speed_bonus()
+	var spd     : float = base_spd * RelicManager.get_projectile_speed_mult()
+	var dmg     : int   = (wdata["damage"] as int) + FractureManager.get_damage_bonus() + RelicManager.get_damage_bonus()
+	var fire_mult := RelicManager.get_fire_rate_mult()
 	var mouse_d := (get_global_mouse_position() - global_position).normalized()
 
-	for i in count:
-		var angle := -spread * 0.5 * float(count - 1) / float(maxi(count - 1, 1)) + spread * float(i)
-		var proj := ProjectileScene.instantiate()
-		proj.damage    = dmg
-		proj.speed     = spd
-		proj.direction = mouse_d.rotated(angle)
-		get_parent().add_child(proj)
-		proj.global_position = global_position
+	# Storm Catalyst: triple next burst
+	var actual_count := count
+	if RelicManager.should_catalyst_triple():
+		actual_count = count * 3
+		RelicManager.consume_catalyst()
+
+	for i in actual_count:
+		var angle := -spread * 0.5 * float(count - 1) / float(maxi(count - 1, 1)) + spread * float(i % count)
+		_fire_single(mouse_d.rotated(angle), dmg, spd)
+		# Arcane Echo: chance to fire again
+		if randf() < RelicManager.get_echo_chance():
+			_fire_single(mouse_d.rotated(angle + randf_range(-0.12, 0.12)), dmg, spd)
+
+	_fire_t = (wdata["fire_rate"] as float) * fire_mult
+
+func _fire_single(direction: Vector2, dmg: int, spd: float) -> void:
+	var proj := ProjectileScene.instantiate()
+	proj.damage    = dmg
+	proj.speed     = spd
+	proj.direction = direction
+	get_parent().add_child(proj)
+	proj.global_position = global_position
 
 func take_damage(amount: int) -> void:
 	if not can_dmg or is_dashing: return
+	# Last Stand relic: at 1 HP, become invincible briefly instead of dying
+	if health <= 1 and amount >= health and RelicManager.can_last_stand():
+		RelicManager.use_last_stand()
+		can_dmg   = false
+		inv_timer = 3.0
+		cam_shake_amt = 10.0
+		cam_shake_dur = 0.3
+		Juice.screen_flash(camera)
+		return
 	health -= amount
+	# Thorned Mantle: deal 2 damage to nearby enemies on hit
+	if RelicManager.has("thorned_mantle"):
+		for e in get_tree().get_nodes_in_group("enemies"):
+			if e.global_position.distance_to(global_position) < 80:
+				e.take_damage(2)
 	can_dmg       = false
-	inv_timer     = INVINCIBILITY
+	inv_timer     = INVINCIBILITY + RelicManager.get_invincibility_bonus()
 	cam_shake_amt = 8.0
 	cam_shake_dur = 0.24
 	Juice.screen_flash(camera)
@@ -234,4 +264,5 @@ func take_damage(amount: int) -> void:
 		GameEvents.player_died.emit()
 		FractureManager.reset()
 		RoomManager.reset()
+		RelicManager.reset()
 		get_tree().change_scene_to_file.call_deferred("res://scenes/main_menu.tscn")

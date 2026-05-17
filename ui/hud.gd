@@ -8,22 +8,38 @@ var room_label: Label
 
 var wave_announce_text := ""
 var wave_announce_timer := 0.0
-const ANNOUNCE_DURATION := 2.2
+const ANNOUNCE_DURATION := 2.5
 
-var boss_hp     := 0
-var boss_max_hp := 0
-var boss_active := false
+var boss_hp      := 0
+var boss_max_hp  := 0
+var boss_active  := false
+var boss_name    := ""
 var weapon_name  := ""
 var weapon_color := Color.WHITE
+
+var _relic_announce_text  := ""
+var _relic_announce_timer := 0.0
+var _relic_announce_col   := Color.WHITE
 
 func _ready() -> void:
 	GameEvents.player_hit.connect(func(h: int, m: int): current_health = h; max_health = m; queue_redraw())
 	GameEvents.score_changed.connect(func(s: int): score_label.text = "SCORE  %d" % s)
 	FractureManager.fractures_changed.connect(func(): queue_redraw())
 	RoomManager.room_loaded.connect(_on_room_loaded)
-	GameEvents.boss_hp_changed.connect(func(c: int, m: int): boss_hp = c; boss_max_hp = m; boss_active = true; queue_redraw())
+	GameEvents.boss_hp_changed.connect(func(c: int, m: int, n: String):
+		boss_hp = c; boss_max_hp = m; boss_name = n; boss_active = true; queue_redraw()
+	)
 	GameEvents.boss_defeated.connect(func(): boss_active = false; queue_redraw())
-	GameEvents.weapon_changed.connect(func(_k: String, wn: String, wc: Color): weapon_name = wn; weapon_color = wc; queue_redraw())
+	GameEvents.weapon_changed.connect(func(_k: String, wn: String, wc: Color):
+		weapon_name = wn; weapon_color = wc; queue_redraw()
+	)
+	GameEvents.relic_gained.connect(func(key: String, name: String):
+		var rdata := RelicManager.RELICS.get(key, {}) as Dictionary
+		_relic_announce_col  = rdata.get("color", Color.WHITE) as Color
+		_relic_announce_text = "RELIC: " + name
+		_relic_announce_timer = 3.0
+		queue_redraw()
+	)
 
 	score_label = _make_label(Vector2(980, 10), HORIZONTAL_ALIGNMENT_RIGHT, 290)
 	score_label.text = "SCORE  0"
@@ -52,10 +68,9 @@ func _make_label(pos: Vector2, align := HORIZONTAL_ALIGNMENT_LEFT, min_w := 0) -
 
 func _on_room_loaded(_pos: Vector2i, type: String, depth: int) -> void:
 	depth_label.text = "DEPTH  %d" % depth
-	room_label.text = type.to_upper()
-	boss_active = false  # Reset boss bar between rooms
+	room_label.text = _room_display_name(type)
+	boss_active = false
 
-	# Announce biome transitions
 	var curr_key := BiomeManager.get_key(depth)
 	var prev_key := BiomeManager.get_key(maxi(0, depth - 1))
 	if curr_key != prev_key or depth == 1:
@@ -66,6 +81,17 @@ func _on_room_loaded(_pos: Vector2i, type: String, depth: int) -> void:
 	wave_announce_timer = ANNOUNCE_DURATION
 	queue_redraw()
 
+func _room_display_name(type: String) -> String:
+	match type:
+		"combat":   return "COMBAT"
+		"healing":  return "HEALING"
+		"shrine":   return "SHRINE"
+		"treasure": return "CACHE"
+		"boss":     return "BOSS"
+		"elite":    return "ELITE"
+		"start":    return "START"
+	return type.to_upper()
+
 func _room_announce(type: String, depth: int) -> String:
 	match type:
 		"start":    return "WELCOME, DRIFTER"
@@ -73,11 +99,15 @@ func _room_announce(type: String, depth: int) -> String:
 		"shrine":   return "ELEMENTAL SHRINE"
 		"treasure": return "HIDDEN CACHE"
 		"boss":     return "BOSS  DEPTH %d" % depth
+		"elite":    return "ELITE THREAT"
 	return "DEPTH  %d" % depth
 
 func _process(delta: float) -> void:
 	if wave_announce_timer > 0:
 		wave_announce_timer -= delta
+		queue_redraw()
+	if _relic_announce_timer > 0:
+		_relic_announce_timer -= delta
 		queue_redraw()
 
 func _draw() -> void:
@@ -106,12 +136,23 @@ func _draw() -> void:
 	if syn != "":
 		draw_string(font, Vector2(0, 672), syn, HORIZONTAL_ALIGNMENT_CENTER, 1280, 13, Color(1, 0.88, 0.4))
 
+	# Relic row (bottom-right area, above weapon)
+	_draw_relic_bar(font)
+
 	# Room announcement
 	if wave_announce_timer > 0:
 		var t := wave_announce_timer / ANNOUNCE_DURATION
 		var alpha := 4.0 * t * (1.0 - t)
 		draw_string(font, Vector2(0, 375), wave_announce_text,
 			HORIZONTAL_ALIGNMENT_CENTER, 1280, 44, Color(1, 0.88, 0.3, alpha))
+
+	# Relic pickup announcement
+	if _relic_announce_timer > 0:
+		var t := _relic_announce_timer / 3.0
+		var alpha := minf(t * 3.0, 1.0) * minf((1.0 - t) * 4.0, 1.0)
+		draw_string(font, Vector2(0, 420), _relic_announce_text,
+			HORIZONTAL_ALIGNMENT_CENTER, 1280, 32,
+			Color(_relic_announce_col.r, _relic_announce_col.g, _relic_announce_col.b, alpha))
 
 	# Weapon display
 	if weapon_name != "":
@@ -127,13 +168,40 @@ func _draw() -> void:
 		var by := 640.0
 		draw_rect(Rect2(bx - 2, by - 2, bw + 4, 18), Color(0.05, 0.03, 0.02))
 		draw_rect(Rect2(bx, by, bw, 14), Color(0.18, 0.08, 0.06))
-		draw_rect(Rect2(bx, by, bw * bp, 14), Color(1.0, 0.28, 0.04))
+		draw_rect(Rect2(bx, by, bw * bp, 14), _boss_bar_color())
 		draw_rect(Rect2(bx, by, bw, 14), Color(0.9, 0.35, 0.08, 0.5), false, 1.5)
-		draw_string(font, Vector2(640, by - 4), "PRINCESS PYRA", HORIZONTAL_ALIGNMENT_CENTER,
-			-1, 13, Color(1.0, 0.65, 0.12))
+		draw_string(font, Vector2(640, by - 4), boss_name if boss_name != "" else "BOSS",
+			HORIZONTAL_ALIGNMENT_CENTER, -1, 13, _boss_bar_color().lightened(0.3))
 
 	# Minimap
 	_draw_minimap(font)
+
+func _boss_bar_color() -> Color:
+	# Tint bar color to match current biome boss
+	var key := BiomeManager.get_key(RoomManager.current_depth)
+	match key:
+		"emberwild": return Color(1.0, 0.28, 0.04)
+		"glacia":    return Color(0.35, 0.70, 1.00)
+		"verdant":   return Color(0.28, 0.90, 0.22)
+		"tempest":   return Color(0.75, 0.50, 1.00)
+	return Color(1.0, 0.28, 0.04)
+
+func _draw_relic_bar(font: Font) -> void:
+	var relics := RelicManager.active_relics
+	if relics.is_empty():
+		return
+	var start_x := 900.0
+	var y       := 690.0
+	draw_string(font, Vector2(start_x - 48, y + 5), "RELICS", HORIZONTAL_ALIGNMENT_LEFT, -1, 9,
+		Color(0.7, 0.7, 0.8, 0.8))
+	for i in relics.size():
+		var key := relics[i] as String
+		var rdata := RelicManager.RELICS.get(key, {}) as Dictionary
+		var col: Color = rdata.get("color", Color.WHITE) as Color
+		var rx := start_x + i * 22.0
+		draw_circle(Vector2(rx, y), 8, col)
+		draw_circle(Vector2(rx, y), 4.5, col.lightened(0.3))
+		draw_circle(Vector2(rx, y), 2, Color.WHITE)
 
 func _draw_minimap(_font: Font) -> void:
 	if RoomManager.world.is_empty():
@@ -145,12 +213,18 @@ func _draw_minimap(_font: Font) -> void:
 	var gap_x :=   14.0
 	var gap_y :=    9.0
 
+	var show_all := RelicManager.has("compass")
+
 	for raw_pos in RoomManager.world:
-		if not RoomManager.visited.has(raw_pos):
-			continue
 		var gp  := raw_pos as Vector2i
+		var visible := RoomManager.visited.has(raw_pos) or show_all
+		if not visible:
+			# Show unvisited rooms as dim dots if compass active
+			continue
 		var data: Dictionary = RoomManager.world[raw_pos] as Dictionary
 		var col: Color = _minimap_color(data["type"] as String)
+		if not RoomManager.visited.has(raw_pos):
+			col.a = 0.35  # Compass: dim for unvisited
 		if gp == RoomManager.current_pos:
 			col = Color.WHITE
 		var sx := cx + gp.x * gap_x
@@ -160,7 +234,7 @@ func _draw_minimap(_font: Font) -> void:
 		for raw_dir in (data.get("exits", []) as Array):
 			var dir := raw_dir as String
 			var npos: Vector2i = gp + (RoomManager.DIRS[dir] as Vector2i)
-			if RoomManager.visited.has(npos):
+			if RoomManager.visited.has(npos) or show_all:
 				var nx := cx + npos.x * gap_x
 				var ny := cy + npos.y * gap_y
 				draw_line(Vector2(sx, sy), Vector2(nx, ny), Color(0.5, 0.5, 0.6, 0.5), 1)
@@ -169,6 +243,7 @@ func _minimap_color(type: String) -> Color:
 	match type:
 		"start":    return Color(0.55, 0.55, 0.60)
 		"combat":   return Color(0.85, 0.25, 0.25)
+		"elite":    return Color(1.00, 0.50, 0.10)
 		"healing":  return Color(0.25, 0.85, 0.40)
 		"shrine":   return Color(0.35, 0.45, 1.00)
 		"treasure": return Color(1.00, 0.82, 0.20)

@@ -36,7 +36,7 @@ func _ready() -> void:
 	var pl := get_tree().get_nodes_in_group("player")
 	if pl.size() > 0:
 		player = pl[0]
-	GameEvents.boss_hp_changed.emit(health, MAX_HP)
+	GameEvents.boss_hp_changed.emit(health, MAX_HP, "PRINCESS PYRA")
 
 # ── Visual ──────────────────────────────────────────────────────────────────
 func _process(delta: float) -> void:
@@ -100,7 +100,7 @@ func _update_phase() -> void:
 	if health <= MAX_HP * 0.30: new_p = 3
 	if new_p != phase:
 		phase = new_p
-		GameEvents.boss_hp_changed.emit(health, MAX_HP)
+		GameEvents.boss_hp_changed.emit(health, MAX_HP, "PRINCESS PYRA")
 
 func _spread_shot() -> void:
 	var cnt: int = SPREAD_CNT[phase - 1] as int
@@ -134,7 +134,7 @@ func take_damage(amount: int) -> void:
 	if _dying:
 		return
 	health -= amount
-	GameEvents.boss_hp_changed.emit(health, MAX_HP)
+	GameEvents.boss_hp_changed.emit(health, MAX_HP, "PRINCESS PYRA")
 	Juice.hit_stop(0.04)
 	if _sprite != null:
 		_sprite.modulate = Color(2.0, 2.0, 2.0)

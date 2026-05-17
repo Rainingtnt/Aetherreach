@@ -23,6 +23,7 @@ RoomManager="*res://autoloads/room_manager.gd"
 BiomeManager="*res://autoloads/biome_manager.gd"
 Juice="*res://autoloads/juice.gd"
 WeaponManager="*res://autoloads/weapon_manager.gd"
+RelicManager="*res://autoloads/relic_manager.gd"
 
 [display]
 

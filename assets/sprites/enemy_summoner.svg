@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -20 28 40" width="56" height="80">
+  <!-- Floating shroud -->
+  <ellipse cx="0" cy="6" rx="10" ry="14" fill="#150830" opacity="0.9"/>
+  <!-- Robe body -->
+  <ellipse cx="0" cy="0" rx="8" ry="11" fill="#22084a"/>
+  <!-- Tattered hem -->
+  <path d="M-10,12 L-7,18 L-4,13 L0,19 L4,13 L7,18 L10,12" fill="#22084a" opacity="0.8"/>
+  <!-- Head -->
+  <ellipse cx="0" cy="-12" rx="7" ry="7" fill="#150830"/>
+  <!-- Mask / face -->
+  <ellipse cx="0" cy="-12" rx="5.5" ry="5" fill="#0a0418"/>
+  <!-- Single glowing eye (cyclops-style) -->
+  <ellipse cx="0" cy="-13" rx="4" ry="3" fill="#5500cc" opacity="0.9"/>
+  <ellipse cx="0" cy="-13" rx="2.5" ry="2" fill="#aa44ff"/>
+  <ellipse cx="0" cy="-13" rx="1.2" ry="1.2" fill="white" opacity="0.9"/>
+  <!-- Summoning circle in hands -->
+  <circle cx="0" cy="4" r="7" fill="none" stroke="#8822ff" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="0" cy="4" r="4" fill="none" stroke="#cc66ff" stroke-width="0.8" opacity="0.6"/>
+  <!-- Rune glyphs on circle -->
+  <line x1="-7" y1="4" x2="7" y2="4" stroke="#8822ff" stroke-width="0.6" opacity="0.5"/>
+  <line x1="0" y1="-3" x2="0" y2="11" stroke="#8822ff" stroke-width="0.6" opacity="0.5"/>
+  <!-- Outstretched arms -->
+  <ellipse cx="-10" cy="0" rx="4" ry="2.5" fill="#22084a" transform="rotate(-20,-10,0)"/>
+  <ellipse cx="10"  cy="0" rx="4" ry="2.5" fill="#22084a" transform="rotate(20,10,0)"/>
+  <!-- Floating dust motes -->
+  <circle cx="-11" cy="-8" r="1.5" fill="#8822ff" opacity="0.6"/>
+  <circle cx="12"  cy="-5" r="1.2" fill="#cc66ff" opacity="0.5"/>
+  <circle cx="-8"  cy="14" r="1.0" fill="#8822ff" opacity="0.4"/>
+</svg>

@@ -6,13 +6,19 @@ const WT := 22.0
 const DH := 36.0
 
 # --- Enemy scenes ---
-const EnemyScene    = preload("res://enemies/enemy.tscn")
-const RangedScene   = preload("res://enemies/ranged_enemy.tscn")
-const FastScene     = preload("res://enemies/fast_enemy.tscn")
-const TankScene     = preload("res://enemies/tank_enemy.tscn")
-const HealerScene   = preload("res://enemies/healer_enemy.tscn")
-const BossPyra      = preload("res://enemies/boss_pyra.tscn")
-const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
+const EnemyScene     = preload("res://enemies/enemy.tscn")
+const RangedScene    = preload("res://enemies/ranged_enemy.tscn")
+const FastScene      = preload("res://enemies/fast_enemy.tscn")
+const TankScene      = preload("res://enemies/tank_enemy.tscn")
+const HealerScene    = preload("res://enemies/healer_enemy.tscn")
+const ArcherScene    = preload("res://enemies/archer_enemy.tscn")
+const SummonerScene  = preload("res://enemies/summoner_enemy.tscn")
+const BossPyra       = preload("res://enemies/boss_pyra.tscn")
+const BossGlacira    = preload("res://enemies/boss_glacira.tscn")
+const BossVerdana    = preload("res://enemies/boss_verdana.tscn")
+const BossTempestine = preload("res://enemies/boss_tempestine.tscn")
+const FracturePickup  = preload("res://scripts/fracture_pickup.tscn")
+const RelicPickupScript = preload("res://scripts/relic_pickup.gd")
 const CrateScript        = preload("res://scripts/crate.gd")
 const BarrelScript       = preload("res://scripts/barrel.gd")
 const BiomeEffectsScript = preload("res://scripts/biome_effects.gd")
@@ -61,7 +67,7 @@ func on_enter(player: Node2D) -> void:
 	_add_biome_effects()
 	queue_redraw()
 
-	if room_type in ["combat", "boss"] and not pre_cleared:
+	if room_type in ["combat", "boss", "elite"] and not pre_cleared:
 		_lock_all()
 		await get_tree().create_timer(0.28).timeout
 		if room_type == "boss":
@@ -545,7 +551,7 @@ func _build_obstacles() -> void:
 # Environmental objects
 # ---------------------------------------------------------------
 func _build_env_objects() -> void:
-	if room_type not in ["combat", "boss"]:
+	if room_type not in ["combat", "boss", "elite"]:
 		return
 	var depth := RoomManager.current_depth
 	_scatter_crates(2)
@@ -680,10 +686,18 @@ func _add_treasure() -> void:
 	var wp := Area2D.new()
 	wp.set_script(WeaponPickupScript)
 	add_child(wp)
-	wp.setup(WeaponManager.random_drop_key(), Vector2(0, -30))
-	var frac := FracturePickup.instantiate()
-	add_child(frac)
-	frac.setup(randi() % 4, Vector2(0, 40))
+	wp.setup(WeaponManager.random_drop_key(), Vector2(0, -40))
+	# Relic pickup (50% chance, or always if no relics yet)
+	var relic_key := RelicManager.random_relic_key()
+	if relic_key != "" and (RelicManager.active_relics.is_empty() or randf() < 0.5):
+		var rp := Area2D.new()
+		rp.set_script(RelicPickupScript)
+		add_child(rp)
+		rp.setup(relic_key, Vector2(0, 40))
+	else:
+		var frac := FracturePickup.instantiate()
+		add_child(frac)
+		frac.setup(randi() % 4, Vector2(0, 40))
 
 # ---------------------------------------------------------------
 # Biome effects (animated atmosphere)
@@ -707,28 +721,48 @@ func _spawn_enemies() -> void:
 	spawns.shuffle()
 
 	var depth := RoomManager.current_depth
+	# Elite rooms get more enemies
 	var count := mini(depth + 3, 9)
+	if room_type == "elite":
+		count = mini(count + 2, 11)
 
 	_enemies_alive = 0
 	for i in count:
 		var pos: Vector2 = spawns[i % spawns.size()] if spawns.size() > 0 else _rand_pos()
 		_spawn(_pick_enemy(depth), pos)
 
+	# Elite rooms: guaranteed fracture drop after clear + sometimes a relic
+	if room_type == "elite":
+		_elite_loot_pending = true
+
 func _pick_enemy(depth: int) -> PackedScene:
 	var r := randf()
 	if depth <= 1:
 		return FastScene if r < 0.25 else EnemyScene
 	elif depth <= 3:
-		if r < 0.35: return EnemyScene
-		if r < 0.55: return RangedScene
-		if r < 0.75: return FastScene
+		if r < 0.30: return EnemyScene
+		if r < 0.50: return RangedScene
+		if r < 0.65: return FastScene
+		if r < 0.80: return ArcherScene
 		return TankScene
+	elif depth <= 6:
+		if r < 0.22: return EnemyScene
+		if r < 0.40: return RangedScene
+		if r < 0.55: return FastScene
+		if r < 0.68: return ArcherScene
+		if r < 0.80: return TankScene
+		if r < 0.90: return HealerScene
+		return SummonerScene
 	else:
-		if r < 0.25: return EnemyScene
-		if r < 0.45: return RangedScene
-		if r < 0.60: return FastScene
-		if r < 0.75: return TankScene
-		return HealerScene
+		if r < 0.18: return EnemyScene
+		if r < 0.35: return RangedScene
+		if r < 0.48: return FastScene
+		if r < 0.60: return ArcherScene
+		if r < 0.72: return TankScene
+		if r < 0.84: return HealerScene
+		return SummonerScene
+
+var _elite_loot_pending := false
 
 func _spawn(scene: PackedScene, pos: Vector2) -> void:
 	var e := scene.instantiate()
@@ -741,7 +775,15 @@ func _rand_pos() -> Vector2:
 	return Vector2(randf_range(-360, 360), randf_range(-220, 220))
 
 func _spawn_boss() -> void:
-	var boss := BossPyra.instantiate()
+	var biome_key := BiomeManager.get_key(RoomManager.current_depth)
+	var boss_scene: PackedScene
+	match biome_key:
+		"emberwild": boss_scene = BossPyra
+		"glacia":    boss_scene = BossGlacira
+		"verdant":   boss_scene = BossVerdana
+		"tempest":   boss_scene = BossTempestine
+		_:           boss_scene = BossPyra
+	var boss := boss_scene.instantiate()
 	boss.position = Vector2(0, -80)
 	add_child(boss)
 	_enemies_alive = 1
@@ -758,6 +800,19 @@ func _on_enemy_removed() -> void:
 		pre_cleared = true
 		_unlock_all()
 		room_cleared.emit()
+		# Elite room: spawn bonus loot after clear
+		if _elite_loot_pending:
+			_elite_loot_pending = false
+			var frac := FracturePickup.instantiate()
+			frac.setup(randi() % 4, Vector2.ZERO)
+			add_child(frac)
+			if randf() < 0.35:
+				var rkey := RelicManager.random_relic_key()
+				if rkey != "":
+					var rp := Area2D.new()
+					rp.set_script(RelicPickupScript)
+					add_child(rp)
+					rp.setup(rkey, Vector2(0, 50))
 
 func _lock_all() -> void:
 	for dir in exits:

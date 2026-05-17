@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-28 -36 56 72" width="112" height="144">
+  <!-- Vine/root train -->
+  <path d="M-20,8 Q-24,26 -14,32 Q0,38 14,32 Q24,26 20,8 Z" fill="#061a06"/>
+  <path d="M-16,6 Q-20,22 -10,28 Q0,34 10,28 Q20,22 16,6 Z" fill="#0a2a0a"/>
+  <!-- Vines trailing -->
+  <path d="M-14,22 Q-22,28 -18,36" fill="none" stroke="#1a5a0a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14,22 Q22,28 18,36" fill="none" stroke="#1a5a0a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M0,30 Q-8,34 -4,40" fill="none" stroke="#22660a" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Body -->
+  <ellipse cx="0" cy="0" rx="13" ry="17" fill="#0e3a0a"/>
+  <!-- Leafy armor panels -->
+  <polygon points="0,-14 11,-6 9,5 0,10 -9,5 -11,-6" fill="#165a10"/>
+  <!-- Leaf veins on armor -->
+  <line x1="0" y1="-12" x2="0" y2="8" stroke="#22880a" stroke-width="0.8" opacity="0.5"/>
+  <line x1="-8" y1="-4" x2="8" y2="-4" stroke="#22880a" stroke-width="0.8" opacity="0.4"/>
+  <!-- Chest bloom gem -->
+  <circle cx="0" cy="-2" r="4.5" fill="#22aa44"/>
+  <circle cx="0" cy="-2" r="2.8" fill="#66dd88"/>
+  <circle cx="0" cy="-2" r="1.2" fill="white" opacity="0.8"/>
+  <!-- Head -->
+  <ellipse cx="0" cy="-22" rx="11" ry="12" fill="#0e3a0a"/>
+  <!-- Leaf crown -->
+  <ellipse cx="-8"  cy="-34" rx="5" ry="2.5" fill="#22880a" transform="rotate(-35,-8,-34)"/>
+  <ellipse cx="-4"  cy="-36" rx="5" ry="2.5" fill="#33aa10" transform="rotate(-15,-4,-36)"/>
+  <ellipse cx="0"   cy="-37" rx="5" ry="2.5" fill="#44cc22"/>
+  <ellipse cx="4"   cy="-36" rx="5" ry="2.5" fill="#33aa10" transform="rotate(15,4,-36)"/>
+  <ellipse cx="8"   cy="-34" rx="5" ry="2.5" fill="#22880a" transform="rotate(35,8,-34)"/>
+  <!-- Crown vines connecting leaves -->
+  <path d="M-8,-31 Q0,-28 8,-31" fill="none" stroke="#1a5a0a" stroke-width="1.2"/>
+  <!-- Eyes (gentle but intense green) -->
+  <ellipse cx="-4.5" cy="-23" rx="4" ry="3.2" fill="#040e04"/>
+  <ellipse cx="4.5"  cy="-23" rx="4" ry="3.2" fill="#040e04"/>
+  <ellipse cx="-4.5" cy="-23" rx="2.8" ry="2.2" fill="#22aa44"/>
+  <ellipse cx="4.5"  cy="-23" rx="2.8" ry="2.2" fill="#22aa44"/>
+  <ellipse cx="-4.5" cy="-23" rx="1.2" ry="1.2" fill="#aaffcc"/>
+  <ellipse cx="4.5"  cy="-23" rx="1.2" ry="1.2" fill="#aaffcc"/>
+  <!-- Vine arms -->
+  <path d="M-11,-2 Q-20,0 -22,10" fill="none" stroke="#165a10" stroke-width="5" stroke-linecap="round"/>
+  <path d="M11,-2 Q20,0 22,10"  fill="none" stroke="#165a10" stroke-width="5" stroke-linecap="round"/>
+  <!-- Hands with thorn tips -->
+  <circle cx="-22" cy="10" r="5" fill="#22880a"/>
+  <circle cx="22"  cy="10" r="5" fill="#22880a"/>
+  <polygon points="-22,5 -24,3 -20,3" fill="#88cc22"/>
+  <polygon points="22,5 24,3 20,3" fill="#88cc22"/>
+  <!-- Boots -->
+  <rect x="-10" y="16" width="8" height="14" rx="3" fill="#061a06" stroke="#165a10" stroke-width="0.8"/>
+  <rect x="2"   y="16" width="8" height="14" rx="3" fill="#061a06" stroke="#165a10" stroke-width="0.8"/>
+  <!-- Vine boot wraps -->
+  <path d="M-10,20 Q-6,18 -2,20" fill="none" stroke="#1a5a0a" stroke-width="1.2"/>
+  <path d="M2,20 Q6,18 10,20"   fill="none" stroke="#1a5a0a" stroke-width="1.2"/>
+</svg>

@@ -6,6 +6,8 @@ signal enemy_died(position: Vector2, points: int)
 signal score_changed(new_score: int)
 signal wave_started(wave_number: int)
 signal room_entered(room_type: String, depth: int)
-signal boss_hp_changed(current_hp: int, max_hp: int)
+signal boss_hp_changed(current_hp: int, max_hp: int, boss_name: String)
 signal boss_defeated
 signal weapon_changed(weapon_key: String, weapon_name: String, weapon_color: Color)
+signal relic_gained(relic_key: String, relic_name: String)
+signal room_cleared_event

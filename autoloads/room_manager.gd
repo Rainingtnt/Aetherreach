@@ -18,16 +18,19 @@ const ENTRY_SPAWN: Dictionary = {
 }
 
 const COMBAT_TEMPLATES: Array = [
+	# 0 — Open arena
 	{
 		"obstacles": [],
 		"spawns": [Vector2(-320,-180),Vector2(320,-180),Vector2(-320,180),
-				   Vector2(320,180),Vector2(0,-220),Vector2(0,220)],
+		           Vector2(320,180),Vector2(0,-220),Vector2(0,220)],
 	},
+	# 1 — Central block
 	{
 		"obstacles": [{"pos":Vector2(0,0),"size":Vector2(110,110)}],
 		"spawns": [Vector2(-310,-160),Vector2(310,-160),Vector2(-310,160),
-				   Vector2(310,160),Vector2(370,0),Vector2(-370,0)],
+		           Vector2(310,160),Vector2(370,0),Vector2(-370,0)],
 	},
+	# 2 — Four corner pillars
 	{
 		"obstacles": [
 			{"pos":Vector2(-210,-120),"size":Vector2(70,70)},
@@ -37,21 +40,77 @@ const COMBAT_TEMPLATES: Array = [
 		],
 		"spawns": [Vector2(0,-220),Vector2(0,220),Vector2(-380,0),Vector2(380,0),Vector2(0,0)],
 	},
+	# 3 — Two vertical walls (side corridors)
 	{
 		"obstacles": [
 			{"pos":Vector2(-160,0),"size":Vector2(55,220)},
 			{"pos":Vector2( 160,0),"size":Vector2(55,220)},
 		],
 		"spawns": [Vector2(-360,-180),Vector2(360,-180),Vector2(-360,180),
-				   Vector2(360,180),Vector2(0,-240),Vector2(0,240)],
+		           Vector2(360,180),Vector2(0,-240),Vector2(0,240)],
 	},
+	# 4 — Two horizontal walls (top/bottom corridors)
 	{
 		"obstacles": [
 			{"pos":Vector2(0,-140),"size":Vector2(200,50)},
 			{"pos":Vector2(0, 140),"size":Vector2(200,50)},
 		],
 		"spawns": [Vector2(-350,-50),Vector2(350,-50),Vector2(-350,50),
-				   Vector2(350,50),Vector2(0,0)],
+		           Vector2(350,50),Vector2(0,0)],
+	},
+	# 5 — L-shaped wall
+	{
+		"obstacles": [
+			{"pos":Vector2(-80,-60),"size":Vector2(180,55)},
+			{"pos":Vector2(-80, 40),"size":Vector2(55,110)},
+		],
+		"spawns": [Vector2(250,-180),Vector2(300,80),Vector2(-320,200),
+		           Vector2(-320,-200),Vector2(200,200),Vector2(0,-220)],
+	},
+	# 6 — Scattered rubble (many small pillars)
+	{
+		"obstacles": [
+			{"pos":Vector2(-240,-100),"size":Vector2(50,50)},
+			{"pos":Vector2(240,-100), "size":Vector2(50,50)},
+			{"pos":Vector2(0,-100),   "size":Vector2(50,50)},
+			{"pos":Vector2(-240, 100),"size":Vector2(50,50)},
+			{"pos":Vector2(240, 100), "size":Vector2(50,50)},
+			{"pos":Vector2(0, 100),   "size":Vector2(50,50)},
+		],
+		"spawns": [Vector2(-340,-200),Vector2(340,-200),Vector2(-340,200),
+		           Vector2(340,200),Vector2(-180,0),Vector2(180,0)],
+	},
+	# 7 — T-junction obstacle
+	{
+		"obstacles": [
+			{"pos":Vector2(0,-80),"size":Vector2(280,55)},
+			{"pos":Vector2(0, 50),"size":Vector2(55,140)},
+		],
+		"spawns": [Vector2(-340,-200),Vector2(340,-200),Vector2(-340,150),
+		           Vector2(340,150),Vector2(-200,-80 + 100),Vector2(200,-80 + 100)],
+	},
+	# 8 — Central ring of pillars
+	{
+		"obstacles": [
+			{"pos":Vector2( 140, 0),"size":Vector2(55,55)},
+			{"pos":Vector2(-140, 0),"size":Vector2(55,55)},
+			{"pos":Vector2(0, 110),"size":Vector2(55,55)},
+			{"pos":Vector2(0,-110),"size":Vector2(55,55)},
+		],
+		"spawns": [Vector2(-350,-200),Vector2(350,-200),Vector2(-350,200),
+		           Vector2(350,200),Vector2(0,0)],
+	},
+	# 9 — Fortress: outer ring + center safe zone
+	{
+		"obstacles": [
+			{"pos":Vector2(-280,-160),"size":Vector2(80,80)},
+			{"pos":Vector2( 280,-160),"size":Vector2(80,80)},
+			{"pos":Vector2(-280, 160),"size":Vector2(80,80)},
+			{"pos":Vector2( 280, 160),"size":Vector2(80,80)},
+			{"pos":Vector2(0,0),      "size":Vector2(90,90)},
+		],
+		"spawns": [Vector2(-380,0),Vector2(380,0),Vector2(0,-255),
+		           Vector2(0,255),Vector2(-200,-100),Vector2(200,100)],
 	},
 ]
 
@@ -82,7 +141,7 @@ func _generate_world() -> void:
 	world.clear()
 	world[Vector2i.ZERO] = _make_room("start", [])
 	var frontier: Array[Vector2i] = [Vector2i.ZERO]
-	var target := 10 + randi() % 6
+	var target := 12 + randi() % 6
 
 	for _i in target:
 		if frontier.is_empty():
@@ -94,13 +153,32 @@ func _generate_world() -> void:
 			var npos: Vector2i = pos + (DIRS[dir] as Vector2i)
 			if world.has(npos):
 				continue
-			var type: String = _pick_type(abs(npos.x) + abs(npos.y))
+			var depth: int = abs(npos.x) + abs(npos.y)
+			var type: String = _pick_type(depth)
 			var opp_dir: String = OPP[dir] as String
 			var data: Dictionary = _make_room(type, [opp_dir])
 			world[pos]["exits"].append(dir)
 			world[npos] = data
 			frontier.append(npos)
 			break
+
+	# Guarantee at least one healing room in first 4 depths
+	var has_early_heal := false
+	for raw_pos in world:
+		var p := raw_pos as Vector2i
+		var d: int = abs(p.x) + abs(p.y)
+		if d <= 4 and (world[raw_pos] as Dictionary)["type"] == "healing":
+			has_early_heal = true
+			break
+	if not has_early_heal:
+		# Convert a random depth-2 or depth-3 combat room to healing
+		for raw_pos in world:
+			var p := raw_pos as Vector2i
+			var d: int = abs(p.x) + abs(p.y)
+			if d in [2, 3] and (world[raw_pos] as Dictionary)["type"] == "combat":
+				world[raw_pos]["type"] = "healing"
+				world[raw_pos]["cleared"] = true
+				break
 
 	# Deepest room becomes boss
 	var boss_pos := Vector2i.ZERO
@@ -115,11 +193,20 @@ func _generate_world() -> void:
 		world[boss_pos]["type"] = "boss"
 		world[boss_pos]["cleared"] = false
 
+	# Mark elite rooms at depth 5+ (harder combat, better loot)
+	for raw_pos in world:
+		var p := raw_pos as Vector2i
+		var d: int = abs(p.x) + abs(p.y)
+		var data := world[raw_pos] as Dictionary
+		if d >= 5 and (data["type"] as String) == "combat" and randf() < 0.28:
+			data["type"] = "elite"
+			data["cleared"] = false
+
 func _make_room(type: String, exits: Array) -> Dictionary:
 	return {
 		"type": type,
 		"exits": exits,
-		"cleared": type != "combat" and type != "boss",
+		"cleared": type not in ["combat", "boss", "elite"],
 		"template": randi() % COMBAT_TEMPLATES.size(),
 	}
 
@@ -127,10 +214,11 @@ func _pick_type(depth: int) -> String:
 	if depth <= 1:
 		return "combat"
 	var r := randf()
-	if r < 0.55: return "combat"
-	if r < 0.70: return "healing"
-	if r < 0.82: return "shrine"
-	return "treasure"
+	if r < 0.50: return "combat"
+	if r < 0.65: return "healing"
+	if r < 0.77: return "shrine"
+	if r < 0.90: return "treasure"
+	return "combat"
 
 func enter_door(direction: String) -> void:
 	if _transitioning:
@@ -185,6 +273,7 @@ func _swap_room(pos: Vector2i, came_from_dir: String) -> void:
 func _on_room_cleared(pos: Vector2i) -> void:
 	if world.has(pos):
 		world[pos]["cleared"] = true
+	GameEvents.room_cleared_event.emit()
 
 func _on_enemy_died(_pos: Vector2, points: int) -> void:
 	total_score += points
