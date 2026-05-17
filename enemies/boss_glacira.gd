@@ -96,6 +96,10 @@ func _physics_process(delta: float) -> void:
 		_frost_t = 3.5
 		_drop_frost_zone()
 
+const DIALOGUE := [
+	"", "Feel the eternal cold seep into your bones...", "I will FREEZE your very soul!",
+]
+
 func _update_phase() -> void:
 	var new_p := 1
 	if health <= MAX_HP * 0.60: new_p = 2
@@ -103,6 +107,8 @@ func _update_phase() -> void:
 	if new_p != phase:
 		phase = new_p
 		GameEvents.boss_hp_changed.emit(health, MAX_HP, "PRINCESS GLACIRA")
+		if new_p - 1 < DIALOGUE.size() and DIALOGUE[new_p - 1] != "":
+			GameEvents.boss_dialogue.emit(DIALOGUE[new_p - 1], Color(0.45, 0.80, 1.0))
 
 func _spread_shot() -> void:
 	var cnt: int = SPREAD_CNT[phase - 1] as int

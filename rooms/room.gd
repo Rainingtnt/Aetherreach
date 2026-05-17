@@ -13,6 +13,11 @@ const TankScene      = preload("res://enemies/tank_enemy.tscn")
 const HealerScene    = preload("res://enemies/healer_enemy.tscn")
 const ArcherScene    = preload("res://enemies/archer_enemy.tscn")
 const SummonerScene  = preload("res://enemies/summoner_enemy.tscn")
+# Biome signature enemies
+const EmblerlingScene  = preload("res://enemies/emberling.tscn")
+const CrystalRavenScene = preload("res://enemies/crystal_raven.tscn")
+const SporelingScene   = preload("res://enemies/sporeling.tscn")
+const SparkDroneScene  = preload("res://enemies/spark_drone.tscn")
 const BossPyra       = preload("res://enemies/boss_pyra.tscn")
 const BossGlacira    = preload("res://enemies/boss_glacira.tscn")
 const BossVerdana    = preload("res://enemies/boss_verdana.tscn")
@@ -652,6 +657,7 @@ func _build_special() -> void:
 		"healing":  _add_healing_zone()
 		"shrine":   _add_shrine()
 		"treasure": _add_treasure()
+		"event":    _add_event_room()
 
 func _add_healing_zone() -> void:
 	var zone := Area2D.new()
@@ -681,6 +687,48 @@ func _add_shrine() -> void:
 			FractureManager.add_fracture(randi() % 4)
 			zone.call_deferred("queue_free")
 	)
+
+func _add_event_room() -> void:
+	# Wandering Drifter — choose ONE of three offerings
+	var choices: Array[Node] = []
+	var positions := [Vector2(-110, 0), Vector2(0, -60), Vector2(110, 0)]
+
+	# Offering 1: weapon
+	var wkey := WeaponManager.random_drop_key()
+	var wp := Area2D.new()
+	wp.set_script(WeaponPickupScript)
+	add_child(wp)
+	wp.setup(wkey, positions[0])
+	choices.append(wp)
+
+	# Offering 2: relic
+	var rkey := RelicManager.random_relic_key()
+	if rkey != "":
+		var rp := Area2D.new()
+		rp.set_script(RelicPickupScript)
+		add_child(rp)
+		rp.setup(rkey, positions[1])
+		choices.append(rp)
+	else:
+		var frac2 := FracturePickup.instantiate()
+		add_child(frac2)
+		frac2.setup(randi() % 4, positions[1])
+		choices.append(frac2)
+
+	# Offering 3: fracture
+	var frac := FracturePickup.instantiate()
+	add_child(frac)
+	frac.setup(randi() % 4, positions[2])
+	choices.append(frac)
+
+	# When any choice is taken, free the others
+	for node in choices:
+		if node.has_method("connect"):
+			node.tree_exited.connect(func():
+				for other in choices:
+					if is_instance_valid(other) and other != node:
+						other.call_deferred("queue_free")
+			)
 
 func _add_treasure() -> void:
 	var wp := Area2D.new()
@@ -736,31 +784,42 @@ func _spawn_enemies() -> void:
 		_elite_loot_pending = true
 
 func _pick_enemy(depth: int) -> PackedScene:
-	var r := randf()
-	if depth <= 1:
-		return FastScene if r < 0.25 else EnemyScene
-	elif depth <= 3:
-		if r < 0.30: return EnemyScene
-		if r < 0.50: return RangedScene
-		if r < 0.65: return FastScene
-		if r < 0.80: return ArcherScene
-		return TankScene
-	elif depth <= 6:
-		if r < 0.22: return EnemyScene
-		if r < 0.40: return RangedScene
-		if r < 0.55: return FastScene
-		if r < 0.68: return ArcherScene
-		if r < 0.80: return TankScene
-		if r < 0.90: return HealerScene
-		return SummonerScene
-	else:
-		if r < 0.18: return EnemyScene
-		if r < 0.35: return RangedScene
-		if r < 0.48: return FastScene
-		if r < 0.60: return ArcherScene
-		if r < 0.72: return TankScene
-		if r < 0.84: return HealerScene
-		return SummonerScene
+	var biome := BiomeManager.get_key(depth)
+	var r     := randf()
+	match biome:
+		"emberwild":
+			# Emberlings are the signature creature — chaotic and explosive
+			if r < 0.35: return EmblerlingScene
+			if r < 0.60: return EnemyScene
+			if r < 0.78: return FastScene
+			if r < 0.90: return ArcherScene
+			return TankScene
+		"glacia":
+			# Crystal Ravens are the signature — dive attackers
+			if r < 0.30: return CrystalRavenScene
+			if r < 0.52: return RangedScene
+			if r < 0.68: return ArcherScene
+			if r < 0.82: return TankScene
+			return HealerScene
+		"verdant":
+			# Sporelings are the signature — slow but AoE danger
+			if r < 0.28: return SporelingScene
+			if r < 0.50: return EnemyScene
+			if r < 0.66: return HealerScene
+			if r < 0.82: return ArcherScene
+			return SummonerScene
+		"tempest":
+			# Spark Drones are the signature — teleporting electric
+			if r < 0.32: return SparkDroneScene
+			if r < 0.52: return RangedScene
+			if r < 0.68: return ArcherScene
+			if r < 0.82: return SummonerScene
+			return FastScene
+		_:
+			if r < 0.35: return EnemyScene
+			if r < 0.60: return RangedScene
+			if r < 0.78: return FastScene
+			return TankScene
 
 var _elite_loot_pending := false
 

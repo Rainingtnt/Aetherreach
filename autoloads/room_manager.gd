@@ -210,10 +210,22 @@ func _make_room(type: String, exits: Array) -> Dictionary:
 		"template": randi() % COMBAT_TEMPLATES.size(),
 	}
 
+func get_cleared(pos: Vector2i) -> bool:
+	if world.has(pos):
+		return (world[pos] as Dictionary).get("cleared", true) as bool
+	return true
+
 func _pick_type(depth: int) -> String:
 	if depth <= 1:
 		return "combat"
 	var r := randf()
+	if depth >= 3:
+		if r < 0.44: return "combat"
+		if r < 0.57: return "healing"
+		if r < 0.68: return "shrine"
+		if r < 0.80: return "treasure"
+		if r < 0.90: return "event"
+		return "combat"
 	if r < 0.50: return "combat"
 	if r < 0.65: return "healing"
 	if r < 0.77: return "shrine"

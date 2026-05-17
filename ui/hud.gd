@@ -20,6 +20,9 @@ var weapon_color := Color.WHITE
 var _relic_announce_text  := ""
 var _relic_announce_timer := 0.0
 var _relic_announce_col   := Color.WHITE
+var _boss_dialogue_text   := ""
+var _boss_dialogue_timer  := 0.0
+var _boss_dialogue_col    := Color.WHITE
 
 func _ready() -> void:
 	GameEvents.player_hit.connect(func(h: int, m: int): current_health = h; max_health = m; queue_redraw())
@@ -32,6 +35,12 @@ func _ready() -> void:
 	GameEvents.boss_defeated.connect(func(): boss_active = false; queue_redraw())
 	GameEvents.weapon_changed.connect(func(_k: String, wn: String, wc: Color):
 		weapon_name = wn; weapon_color = wc; queue_redraw()
+	)
+	GameEvents.boss_dialogue.connect(func(text: String, col: Color):
+		_boss_dialogue_text  = text
+		_boss_dialogue_timer = 3.5
+		_boss_dialogue_col   = col
+		queue_redraw()
 	)
 	GameEvents.relic_gained.connect(func(key: String, relic_name: String):
 		var rdata := RelicManager.RELICS.get(key, {}) as Dictionary
@@ -100,6 +109,7 @@ func _room_announce(type: String, depth: int) -> String:
 		"treasure": return "HIDDEN CACHE"
 		"boss":     return "BOSS  DEPTH %d" % depth
 		"elite":    return "ELITE THREAT"
+		"event":    return "WANDERING DRIFTER"
 	return "DEPTH  %d" % depth
 
 func _process(delta: float) -> void:
@@ -108,6 +118,9 @@ func _process(delta: float) -> void:
 		queue_redraw()
 	if _relic_announce_timer > 0:
 		_relic_announce_timer -= delta
+		queue_redraw()
+	if _boss_dialogue_timer > 0:
+		_boss_dialogue_timer -= delta
 		queue_redraw()
 
 func _draw() -> void:
@@ -145,6 +158,15 @@ func _draw() -> void:
 		var alpha := 4.0 * t * (1.0 - t)
 		draw_string(font, Vector2(0, 375), wave_announce_text,
 			HORIZONTAL_ALIGNMENT_CENTER, 1280, 44, Color(1, 0.88, 0.3, alpha))
+
+	# Boss dialogue line
+	if _boss_dialogue_timer > 0:
+		var t := _boss_dialogue_timer / 3.5
+		var alpha := minf(t * 5.0, 1.0) * minf((1.0 - t) * 4.0, 1.0)
+		var c := _boss_dialogue_col
+		draw_string(font, Vector2(0, 580), "\"" + _boss_dialogue_text + "\"",
+			HORIZONTAL_ALIGNMENT_CENTER, 1280, 24,
+			Color(c.r, c.g, c.b, alpha))
 
 	# Relic pickup announcement
 	if _relic_announce_timer > 0:
@@ -275,6 +297,7 @@ func _minimap_color(type: String) -> Color:
 		"start":    return Color(0.55, 0.55, 0.60)
 		"combat":   return Color(0.85, 0.25, 0.25)
 		"elite":    return Color(1.00, 0.50, 0.10)
+		"event":    return Color(0.55, 0.88, 1.00)
 		"healing":  return Color(0.25, 0.85, 0.40)
 		"shrine":   return Color(0.35, 0.45, 1.00)
 		"treasure": return Color(1.00, 0.82, 0.20)

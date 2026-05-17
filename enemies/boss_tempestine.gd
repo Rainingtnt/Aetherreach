@@ -104,6 +104,10 @@ func _physics_process(delta: float) -> void:
 		_tele_t = TELEPORT_CD
 		_teleport()
 
+const DIALOGUE := [
+	"", "You cannot outrun the storm.", "I  AM  THE  STORM.",
+]
+
 func _update_phase() -> void:
 	var new_p := 1
 	if health <= MAX_HP * 0.60: new_p = 2
@@ -111,6 +115,8 @@ func _update_phase() -> void:
 	if new_p != phase:
 		phase = new_p
 		GameEvents.boss_hp_changed.emit(health, MAX_HP, "PRINCESS TEMPESTINE")
+		if new_p - 1 < DIALOGUE.size() and DIALOGUE[new_p - 1] != "":
+			GameEvents.boss_dialogue.emit(DIALOGUE[new_p - 1], Color(0.80, 0.65, 1.0))
 
 func _spread_shot() -> void:
 	var cnt: int = SPREAD_CNT[phase - 1] as int

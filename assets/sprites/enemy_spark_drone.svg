@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 28 28" width="56" height="56">
+  <!-- Outer rotating armor ring -->
+  <polygon points="0,-13 8,-8 13,0 8,8 0,13 -8,8 -13,0 -8,-8" fill="none" stroke="#5533aa" stroke-width="2"/>
+  <!-- Body hexagon -->
+  <polygon points="0,-10 7,-5 7,5 0,10 -7,5 -7,-5" fill="#221144"/>
+  <polygon points="0,-7 5,-3.5 5,3.5 0,7 -5,3.5 -5,-3.5" fill="#331166"/>
+  <!-- Core orb -->
+  <circle cx="0" cy="0" r="4" fill="#6633cc"/>
+  <circle cx="0" cy="0" r="2.5" fill="#9966ff"/>
+  <circle cx="0" cy="0" r="1.2" fill="#ffee44" opacity="0.9"/>
+  <!-- Electric arc bolts from corners -->
+  <line x1="0"  y1="-10" x2="-2" y2="-6" stroke="#ffee44" stroke-width="1.2" opacity="0.8"/>
+  <line x1="7"  y1="-5"  x2="4"  y2="-2" stroke="#ffee44" stroke-width="1.2" opacity="0.8"/>
+  <line x1="7"  y1="5"   x2="4"  y2="2"  stroke="#ffee44" stroke-width="1.2" opacity="0.8"/>
+  <line x1="0"  y1="10"  x2="2"  y2="6"  stroke="#ffee44" stroke-width="1.2" opacity="0.8"/>
+  <line x1="-7" y1="5"   x2="-4" y2="2"  stroke="#ffee44" stroke-width="1.2" opacity="0.8"/>
+  <line x1="-7" y1="-5"  x2="-4" y2="-2" stroke="#ffee44" stroke-width="1.2" opacity="0.8"/>
+  <!-- Floating thruster lights -->
+  <circle cx="0"   cy="-12" r="2"   fill="#9966ff" opacity="0.7"/>
+  <circle cx="11"  cy="-4"  r="1.8" fill="#9966ff" opacity="0.6"/>
+  <circle cx="11"  cy="4"   r="1.8" fill="#9966ff" opacity="0.6"/>
+  <circle cx="0"   cy="12"  r="2"   fill="#9966ff" opacity="0.7"/>
+  <circle cx="-11" cy="4"   r="1.8" fill="#9966ff" opacity="0.6"/>
+  <circle cx="-11" cy="-4"  r="1.8" fill="#9966ff" opacity="0.6"/>
+</svg>

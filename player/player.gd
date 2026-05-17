@@ -35,6 +35,10 @@ const ProjectileScene = preload("res://scripts/projectile.tscn")
 const DashTrailScript = preload("res://effects/dash_trail.gd")
 const DeathBurst      = preload("res://effects/death_burst.tscn")
 const PlayerTexture   = preload("res://assets/sprites/player.svg")
+const OrbitalOrbScript = preload("res://scripts/orbital_orb.gd")
+
+var _orbital_count := 0
+const MAX_ORBITALS := 5
 
 var _sprite: Sprite2D = null
 
@@ -225,26 +229,60 @@ func _shoot() -> void:
 	var fire_mult := RelicManager.get_fire_rate_mult()
 	var mouse_d := (get_global_mouse_position() - global_position).normalized()
 
+	# Orbital weapon — spawns orbiting orbs instead of firing
+	if wdata.get("is_orbital", false) as bool:
+		if _orbital_count < MAX_ORBITALS:
+			_spawn_orbital(dmg, wdata["color"] as Color)
+		_fire_t = (wdata["fire_rate"] as float) * fire_mult
+		return
+
 	# Storm Catalyst: triple next burst
 	var actual_count := count
 	if RelicManager.should_catalyst_triple():
 		actual_count = count * 3
 		RelicManager.consume_catalyst()
 
+	var proj_scale := (wdata.get("proj_scale", 1.0)) as float
+	var is_explosive := (wdata.get("explosive", false)) as bool
+	var exp_radius   := (wdata.get("explosion_radius", 72.0)) as float
+	var has_bounce   := (wdata.get("bounces", 0)) as int
+	var has_chain    := (wdata.get("chain_shot", false)) as bool
+	var chain_rng    := (wdata.get("chain_range", 130.0)) as float
+	var wcol         := wdata["color"] as Color
+
 	for i in actual_count:
 		var angle := -spread * 0.5 * float(count - 1) / float(maxi(count - 1, 1)) + spread * float(i % count)
-		_fire_single(mouse_d.rotated(angle), dmg, spd)
-		# Arcane Echo: chance to fire again
+		_fire_single(mouse_d.rotated(angle), dmg, spd, wcol, proj_scale, is_explosive, exp_radius, has_bounce, has_chain, chain_rng)
 		if randf() < RelicManager.get_echo_chance():
-			_fire_single(mouse_d.rotated(angle + randf_range(-0.12, 0.12)), dmg, spd)
+			_fire_single(mouse_d.rotated(angle + randf_range(-0.12, 0.12)), dmg, spd, wcol, proj_scale, is_explosive, exp_radius, has_bounce, has_chain, chain_rng)
 
 	_fire_t = (wdata["fire_rate"] as float) * fire_mult
 
-func _fire_single(direction: Vector2, dmg: int, spd: float) -> void:
+func _spawn_orbital(dmg: int, col: Color) -> void:
+	var orb := Area2D.new()
+	orb.set_script(OrbitalOrbScript)
+	get_parent().add_child(orb)
+	orb.setup(self, _orbital_count, dmg + RelicManager.get_damage_bonus(), col)
+	_orbital_count += 1
+	orb.tree_exited.connect(func(): _orbital_count = maxi(0, _orbital_count - 1))
+
+func _fire_single(dir: Vector2, dmg: int, spd: float, wcol: Color,
+		pscale: float, is_exp: bool, exp_r: float,
+		bounce_cnt: int, is_chain: bool, chain_r: float) -> void:
 	var proj := ProjectileScene.instantiate()
-	proj.damage    = dmg
-	proj.speed     = spd
-	proj.direction = direction
+	proj.damage     = dmg
+	proj.speed      = spd
+	proj.direction  = dir
+	proj.proj_color = wcol
+	proj.proj_scale = pscale
+	if is_exp:
+		proj.explosive        = true
+		proj.explosion_radius = exp_r
+	if bounce_cnt > 0:
+		proj.bounces = bounce_cnt
+	if is_chain:
+		proj.chain_shot  = true
+		proj.chain_range = chain_r
 	get_parent().add_child(proj)
 	proj.global_position = global_position
 

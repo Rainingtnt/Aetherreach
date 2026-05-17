@@ -102,6 +102,10 @@ func _physics_process(delta: float) -> void:
 		_summon_t = SUMMON_CD[phase - 1] as float
 		_summon_minion()
 
+const DIALOGUE := [
+	"", "The forest always reclaims what is lost...", "Wither.  Return to the earth.",
+]
+
 func _update_phase() -> void:
 	var new_p := 1
 	if health <= MAX_HP * 0.60: new_p = 2
@@ -109,6 +113,8 @@ func _update_phase() -> void:
 	if new_p != phase:
 		phase = new_p
 		GameEvents.boss_hp_changed.emit(health, MAX_HP, "PRINCESS VERDANA")
+		if new_p - 1 < DIALOGUE.size() and DIALOGUE[new_p - 1] != "":
+			GameEvents.boss_dialogue.emit(DIALOGUE[new_p - 1], Color(0.28, 0.90, 0.22))
 
 func _spread_shot() -> void:
 	var cnt: int = SPREAD_CNT[phase - 1] as int

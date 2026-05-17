@@ -11,3 +11,4 @@ signal boss_defeated
 signal weapon_changed(weapon_key: String, weapon_name: String, weapon_color: Color)
 signal relic_gained(relic_key: String, relic_name: String)
 signal room_cleared_event
+signal boss_dialogue(text: String, col: Color)

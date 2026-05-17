@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://37ff562b630fa9df"]
+
+[ext_resource type="Script" path="res://enemies/sporeling.gd" id="1_sporeling"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 11.0
+
+[node name="sporeling" type="CharacterBody2D"]
+script = ExtResource("1_sporeling")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
