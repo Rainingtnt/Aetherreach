@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -18 32 36" width="64" height="72">
+  <!-- Body -->
+  <polygon points="0,-16 7,-8 14,0 7,7 0,12 -7,7 -14,0 -7,-8" fill="#c43636"/>
+  <!-- Spikes -->
+  <polygon points="0,-16 -4,-22 4,-22" fill="#e04444"/>
+  <polygon points="14,0 20,-3 20,3" fill="#e04444"/>
+  <polygon points="-14,0 -20,-3 -20,3" fill="#e04444"/>
+  <polygon points="0,12 -3,18 3,18" fill="#e04444"/>
+  <!-- Eye sockets -->
+  <ellipse cx="-5" cy="-4" rx="4" ry="4" fill="#1a0500"/>
+  <ellipse cx="5"  cy="-4" rx="4" ry="4" fill="#1a0500"/>
+  <!-- Yellow eyes -->
+  <ellipse cx="-5" cy="-4" rx="2.8" ry="2.8" fill="#ffd11a"/>
+  <ellipse cx="5"  cy="-4" rx="2.8" ry="2.8" fill="#ffd11a"/>
+  <!-- Pupils -->
+  <ellipse cx="-5" cy="-4" rx="1.3" ry="1.3" fill="#110800"/>
+  <ellipse cx="5"  cy="-4" rx="1.3" ry="1.3" fill="#110800"/>
+  <!-- Body detail lines -->
+  <line x1="-7" y1="-8" x2="7" y2="-8" stroke="#e04444" stroke-width="0.8" opacity="0.6"/>
+  <line x1="0" y1="-8" x2="0" y2="8" stroke="#e04444" stroke-width="0.8" opacity="0.5"/>
+</svg>

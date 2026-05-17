@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -18 28 36" width="56" height="72">
+  <!-- Robe base -->
+  <ellipse cx="0" cy="6" rx="10" ry="12" fill="#2a0a4e"/>
+  <!-- Robe top -->
+  <ellipse cx="0" cy="-4" rx="8" ry="10" fill="#3d1270"/>
+  <!-- Head -->
+  <ellipse cx="0" cy="-12" rx="7" ry="7" fill="#2a0a4e"/>
+  <!-- Hat brim -->
+  <ellipse cx="0" cy="-16" rx="9" ry="2" fill="#1a0830"/>
+  <!-- Hat cone -->
+  <polygon points="0,-28 -6,-16 6,-16" fill="#1a0830"/>
+  <!-- Hat band star glow -->
+  <circle cx="0" cy="-18" r="2" fill="#8822ff" opacity="0.9"/>
+  <!-- Eyes -->
+  <ellipse cx="-3" cy="-13" rx="2.2" ry="1.8" fill="#cc44ff"/>
+  <ellipse cx="3"  cy="-13" rx="2.2" ry="1.8" fill="#cc44ff"/>
+  <!-- Pupils -->
+  <ellipse cx="-3" cy="-13" rx="1" ry="1" fill="#200030"/>
+  <ellipse cx="3"  cy="-13" rx="1" ry="1" fill="#200030"/>
+  <!-- Orb in hand -->
+  <circle cx="11" cy="0" r="5" fill="#5500cc" opacity="0.8"/>
+  <circle cx="11" cy="0" r="3" fill="#aa55ff"/>
+  <circle cx="11" cy="0" r="1.5" fill="white" opacity="0.9"/>
+  <!-- Staff arm -->
+  <line x1="7" y1="-2" x2="10" y2="0" stroke="#2a0a4e" stroke-width="3" stroke-linecap="round"/>
+  <!-- Robe trim -->
+  <path d="M-10,8 Q-10,17 0,18 Q10,17 10,8" fill="none" stroke="#8822ff" stroke-width="0.8" opacity="0.6"/>
+</svg>

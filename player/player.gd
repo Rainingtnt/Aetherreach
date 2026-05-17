@@ -33,79 +33,65 @@ var cam_shake_dur := 0.0
 const ProjectileScene = preload("res://scripts/projectile.tscn")
 const DashTrailScript = preload("res://effects/dash_trail.gd")
 const DeathBurst      = preload("res://effects/death_burst.tscn")
+const PlayerTexture   = preload("res://assets/sprites/player.svg")
+
+var _sprite: Sprite2D = null
 
 func _ready() -> void:
 	add_to_group("player")
+	_sprite = Sprite2D.new()
+	_sprite.texture = PlayerTexture
+	_sprite.scale   = Vector2(0.5, 0.5)
+	add_child(_sprite)
 	GameEvents.player_hit.emit(health, max_health)
 	var wdata := WeaponManager.get_weapon(current_weapon)
 	GameEvents.weapon_changed.emit(current_weapon, wdata["name"] as String, wdata["color"] as Color)
 	queue_redraw()
 
-# ── Visual (procedural animation) ────────────────────────────────────────────
+# ── Visual ────────────────────────────────────────────────────────────────────
 func _draw() -> void:
-	var mouse_dir  := (get_global_mouse_position() - global_position).normalized()
-	var fracs      := FractureManager.active_fractures
-	var spd_ratio  := clampf(velocity.length() / SPEED, 0.0, 1.0)
-	var breathe    := sin(_anim_t * 1.5) * 1.2
-	var lean       := velocity.x * 0.005 * spd_ratio
-	var sx         := 1.0 + (0.50 if is_dashing else spd_ratio * 0.10)
-	var sy         := 1.0 - (0.35 if is_dashing else spd_ratio * 0.05)
+	var fracs := FractureManager.active_fractures
+	var syn   := FractureManager.get_synergy()
 
 	# Synergy aura ring
-	var syn := FractureManager.get_synergy()
 	if syn == "THORNFROST":
 		draw_arc(Vector2.ZERO, 65, 0, TAU, 32, Color(0.28, 0.88, 0.5, 0.28), 2)
 
-	# Fracture rings
+	# Fracture element rings around player
 	for i in fracs.size():
 		var fc: Color = FractureManager.ELEMENT_COLORS[fracs[i]] as Color
 		draw_arc(Vector2.ZERO, 17 + i * 5, 0, TAU, 24, Color(fc.r, fc.g, fc.b, 0.22), 1.5)
 
-	# Apply squash/stretch + breathing transform
-	draw_set_transform(Vector2(0, breathe), lean, Vector2(sx, sy))
-
-	var body_col := _body_color()
-	var dark_col := Color(body_col.r * 0.55, body_col.g * 0.50, body_col.b * 0.55)
-	var body := PackedVector2Array([
-		Vector2(-8, 12), Vector2(8, 12), Vector2(9, 5),
-		Vector2(7, -4), Vector2(3, -10), Vector2(0, -14),
-		Vector2(-3, -10), Vector2(-7, -4), Vector2(-9, 5),
-	])
-	draw_colored_polygon(body, body_col)
-	draw_colored_polygon(PackedVector2Array([Vector2(-5,-7),Vector2(0,-15),Vector2(5,-7)]), dark_col)
-
-	# Elemental scarf
-	if not fracs.is_empty():
-		var sc: Color = FractureManager.ELEMENT_COLORS[fracs[fracs.size()-1]] as Color
-		draw_rect(Rect2(-8, 2, 16, 3), Color(sc.r, sc.g, sc.b, 0.75))
-
-	# Glowing core
-	var glow := _glow_color()
-	draw_circle(Vector2(0, 2), 4, Color(glow.r, glow.g, glow.b, 0.55))
-	draw_circle(Vector2(0, 2), 2.5, glow)
-
-	# Weapon tint on aim arrow
+	# Weapon aim arrow
+	var mouse_dir := (get_global_mouse_position() - global_position).normalized()
 	var wcol: Color = (WeaponManager.get_weapon(current_weapon)["color"] as Color).lerp(Color.WHITE, 0.5)
-	var tip  := mouse_dir * 21
-	var perp := mouse_dir.rotated(PI * 0.5) * 4.5
-	draw_colored_polygon(PackedVector2Array([tip, mouse_dir*14+perp, mouse_dir*14-perp]), wcol)
+	var tip   := mouse_dir * 21
+	var perp  := mouse_dir.rotated(PI * 0.5) * 4.5
+	draw_colored_polygon(PackedVector2Array([tip, mouse_dir * 14 + perp, mouse_dir * 14 - perp]), wcol)
 
 	if is_dashing:
 		draw_arc(Vector2.ZERO, 16, 0, TAU, 16, Color(0.45, 1.0, 1.0, 0.35), 2)
 
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+func _update_sprite_anim() -> void:
+	if _sprite == null:
+		return
+	var spd_ratio := clampf(velocity.length() / SPEED, 0.0, 1.0)
+	var breathe   := sin(_anim_t * 1.5) * 0.015
+	var lean      := velocity.x * 0.003 * spd_ratio
+	var sx        := 1.0 + (0.50 if is_dashing else spd_ratio * 0.10)
+	var sy        := 1.0 - (0.35 if is_dashing else spd_ratio * 0.05)
 
-func _body_color() -> Color:
-	var fracs := FractureManager.active_fractures
-	var base := Color(0.52, 0.60, 0.72)
-	if fracs.is_empty(): return base
-	var fc: Color = FractureManager.ELEMENT_COLORS[fracs[fracs.size()-1]] as Color
-	return base.lerp(fc, 0.38)
+	_sprite.scale    = Vector2(0.5 * sx, 0.5 * (sy + breathe))
+	_sprite.rotation = lean
+	_sprite.offset   = Vector2(0, -4)
 
-func _glow_color() -> Color:
+	# Tint sprite toward active fracture color
 	var fracs := FractureManager.active_fractures
-	if fracs.is_empty(): return Color(0.75, 0.88, 1.0)
-	return FractureManager.ELEMENT_COLORS[fracs[fracs.size()-1]] as Color
+	if fracs.is_empty():
+		_sprite.modulate = Color.WHITE
+	else:
+		var fc: Color = FractureManager.ELEMENT_COLORS[fracs[fracs.size()-1]] as Color
+		_sprite.modulate = Color.WHITE.lerp(fc, 0.30)
 
 # ── Process ───────────────────────────────────────────────────────────────────
 func _process(delta: float) -> void:
@@ -120,6 +106,7 @@ func _process(delta: float) -> void:
 	_handle_regen(delta)
 	_handle_synergy_passives(delta)
 	_update_cam_shake(delta)
+	_update_sprite_anim()
 	queue_redraw()
 
 func _physics_process(delta: float) -> void:

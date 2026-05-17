@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -16 24 32" width="48" height="64">
+  <!-- Main arrowhead/blade -->
+  <polygon points="0,-14 10,4 5,9 0,7 -5,9 -10,4" fill="#1de6b8"/>
+  <!-- Inner highlight -->
+  <polygon points="0,-10 6,2 3,6 0,4 -3,6 -6,2" fill="#5cffd8" opacity="0.7"/>
+  <!-- Wing fins -->
+  <polygon points="-10,4 -16,0 -10,8" fill="#1de6b8" opacity="0.8"/>
+  <polygon points="10,4 16,0 10,8" fill="#1de6b8" opacity="0.8"/>
+  <!-- Speed trail streaks -->
+  <line x1="0" y1="8" x2="0" y2="16" stroke="#1de6b8" stroke-width="2.5" opacity="0.4" stroke-linecap="round"/>
+  <line x1="-3" y1="9" x2="-4" y2="15" stroke="#1de6b8" stroke-width="1.2" opacity="0.25" stroke-linecap="round"/>
+  <line x1="3" y1="9" x2="4" y2="15" stroke="#1de6b8" stroke-width="1.2" opacity="0.25" stroke-linecap="round"/>
+  <!-- Core gem -->
+  <ellipse cx="0" cy="-2" rx="3" ry="4" fill="#80fff0" opacity="0.9"/>
+  <ellipse cx="0" cy="-2" rx="1.5" ry="2" fill="white" opacity="0.8"/>
+</svg>

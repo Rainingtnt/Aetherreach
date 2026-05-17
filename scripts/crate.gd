@@ -33,9 +33,9 @@ func take_damage(amount: int) -> void:
 		var burst := DeathBurst.instantiate()
 		burst.global_position = global_position
 		burst.color = Color(0.52, 0.38, 0.22)
-		get_parent().add_child(burst)
+		get_parent().call_deferred("add_child", burst)
 		if randf() < 0.5:
 			var frac := FracturePickup.instantiate()
-			get_parent().add_child(frac)
 			frac.setup(randi() % 4, global_position)
+			get_parent().call_deferred("add_child", frac)
 		queue_free.call_deferred()

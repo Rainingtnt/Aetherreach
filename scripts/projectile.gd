@@ -78,7 +78,7 @@ func _inferno_explosion() -> void:
 	var burst := DeathBurst.instantiate()
 	burst.global_position = global_position
 	burst.color = Color(1.0, 0.38, 0.06)
-	get_parent().add_child(burst)
+	get_parent().call_deferred("add_child", burst)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if e.global_position.distance_to(global_position) < 60:
 			e.take_damage(1)
@@ -90,7 +90,7 @@ func _stormbloom_split() -> void:
 		proj.set("damage",    1)
 		proj.set("speed",     360.0)
 		proj.set("direction", direction.rotated(TAU / 3.0 * (i + 1)))
-		get_parent().add_child(proj)
+		get_parent().call_deferred("add_child", proj)
 		proj.global_position = global_position
 
 func _steam_slow_aoe() -> void:

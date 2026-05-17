@@ -17,33 +17,28 @@ var _anim_t    := randf() * TAU
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
+const EnemyTexture   = preload("res://assets/sprites/enemy_speeder.svg")
+
+var _sprite: Sprite2D = null
 
 func _ready() -> void:
 	add_to_group("enemies")
-	queue_redraw()
+	_sprite = Sprite2D.new()
+	_sprite.texture = EnemyTexture
+	_sprite.scale   = Vector2(0.44, 0.44)
+	add_child(_sprite)
 	var pl := get_tree().get_nodes_in_group("player")
 	if pl.size() > 0:
 		player = pl[0]
 
 func _process(delta: float) -> void:
 	_anim_t += delta
-	queue_redraw()
-
-func _draw() -> void:
-	var wobble := sin(_anim_t * 4.5) * 1.0
-	draw_set_transform(Vector2(0, wobble))
-	# Blade/arrowhead body
-	var pts := PackedVector2Array([
-		Vector2(0, -13), Vector2(9, 4),
-		Vector2(4, 8), Vector2(0, 6),
-		Vector2(-4, 8), Vector2(-9, 4),
-	])
-	draw_colored_polygon(pts, Color(0.12, 0.90, 0.72))
-	draw_polyline(PackedVector2Array([Vector2(0,-13),Vector2(9,4),Vector2(0,6),Vector2(-9,4),Vector2(0,-13)]),
-		Color(0.5, 1.0, 0.88, 0.7), 1.2)
-	# Speed streak
-	draw_line(Vector2(0, 6), Vector2(0, 14), Color(0.12, 0.90, 0.72, 0.35), 2)
-	draw_set_transform(Vector2.ZERO)
+	if _sprite != null:
+		var wobble := sin(_anim_t * 4.5) * 0.018
+		_sprite.scale    = Vector2(0.44 + wobble, 0.44 - wobble)
+		# Face movement direction
+		if velocity.length() > 10:
+			_sprite.rotation = velocity.angle() + PI * 0.5
 
 func _physics_process(delta: float) -> void:
 	if player == null: return
@@ -58,7 +53,7 @@ func _physics_process(delta: float) -> void:
 		contact_t = CONTACT_COOLDOWN
 
 func heal(_a: int) -> void: pass
-func apply_slow(_d: float) -> void: pass
+func apply_slow(_d: float, _m: float = 0.35) -> void: pass
 
 func take_damage(amount: int) -> void:
 	health -= amount
@@ -67,10 +62,10 @@ func take_damage(amount: int) -> void:
 		var burst := DeathBurst.instantiate()
 		burst.global_position = global_position
 		burst.color = Color(0.12, 0.90, 0.72)
-		get_parent().add_child(burst)
+		get_parent().call_deferred("add_child", burst)
 		if randf() < 0.35:
 			var frac := FracturePickup.instantiate()
-			get_parent().add_child(frac)
 			frac.setup(randi() % 4, global_position)
+			get_parent().call_deferred("add_child", frac)
 		GameEvents.enemy_died.emit(global_position, 2)
 		queue_free.call_deferred()

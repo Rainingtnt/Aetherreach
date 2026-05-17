@@ -10,47 +10,43 @@ var health     := 3
 var damage     := 1
 var player: Node2D = null
 var contact_t  := 0.0
-var hit_flash  := false
 var speed_mult := 1.0
 var slow_timer := 0.0
 var _anim_t    := randf() * TAU
 
 const DeathBurst     = preload("res://effects/death_burst.tscn")
 const FracturePickup = preload("res://scripts/fracture_pickup.tscn")
+const EnemyTexture   = preload("res://assets/sprites/enemy_chaser.svg")
+
+var _sprite: Sprite2D = null
 
 func _ready() -> void:
 	add_to_group("enemies")
-	queue_redraw()
+	_sprite = Sprite2D.new()
+	_sprite.texture = EnemyTexture
+	_sprite.scale   = Vector2(0.44, 0.44)
+	add_child(_sprite)
 	var pl := get_tree().get_nodes_in_group("player")
 	if pl.size() > 0:
 		player = pl[0]
 
 func _process(delta: float) -> void:
 	_anim_t += delta
+	if _sprite != null:
+		var wobble := sin(_anim_t * 2.6) * 0.015
+		_sprite.scale    = Vector2(0.44, 0.44 + wobble)
+		_sprite.rotation = velocity.x * 0.003
+		if slow_timer > 0:
+			_sprite.modulate = Color(0.5, 0.7, 1.0)
+		else:
+			_sprite.modulate = Color.WHITE
 	queue_redraw()
 
 func _draw() -> void:
-	var wobble := sin(_anim_t * 2.6) * 1.4
-	draw_set_transform(Vector2(0, wobble))
-	var col := Color(0.88, 0.88, 1.0) if hit_flash else Color(0.85, 0.22, 0.22)
-	if slow_timer > 0:
-		col = col.lerp(Color(0.4, 0.7, 1.0), 0.5)
-	var body := PackedVector2Array([
-		Vector2(0, -16), Vector2(7, -8), Vector2(14, 0),
-		Vector2(7, 7), Vector2(0, 12), Vector2(-7, 7),
-		Vector2(-14, 0), Vector2(-7, -8),
-	])
-	draw_colored_polygon(body, col)
-	# Eyes
-	for sign_x in [-1, 1]:
-		draw_circle(Vector2(sign_x * 5, -4), 3.2, Color(1.0, 0.82, 0.12))
-		draw_circle(Vector2(sign_x * 5, -4), 1.5, Color(0.08, 0.04, 0.0))
-	# Health bar
 	if health < max_health:
 		var pct := float(health) / float(max_health)
-		draw_rect(Rect2(-14, -24, 28, 3), Color(0.12, 0.12, 0.12))
-		draw_rect(Rect2(-14, -24, 28.0 * pct, 3), Color(0.28, 1.0, 0.3))
-	draw_set_transform(Vector2.ZERO)
+		draw_rect(Rect2(-14, -26, 28, 3), Color(0.12, 0.12, 0.12))
+		draw_rect(Rect2(-14, -26, 28.0 * pct, 3), Color(0.28, 1.0, 0.3))
 
 func _physics_process(delta: float) -> void:
 	if slow_timer > 0:
@@ -69,26 +65,26 @@ func _physics_process(delta: float) -> void:
 func apply_slow(duration: float, mult: float = 0.35) -> void:
 	speed_mult = mult
 	slow_timer = duration
-	queue_redraw()
 
 func heal(amount: int) -> void:
 	health = min(health + amount, max_health)
-	queue_redraw()
 
 func take_damage(amount: int) -> void:
 	health -= amount
-	hit_flash = true
-	queue_redraw()
-	get_tree().create_timer(0.1).timeout.connect(func(): hit_flash = false; queue_redraw())
+	if _sprite != null:
+		_sprite.modulate = Color(2.0, 2.0, 2.0)
+		get_tree().create_timer(0.1).timeout.connect(func():
+			if is_instance_valid(_sprite): _sprite.modulate = Color.WHITE
+		)
 	if health <= 0:
 		Juice.hit_stop(0.045)
 		var burst := DeathBurst.instantiate()
 		burst.global_position = global_position
 		burst.color = Color(0.88, 0.22, 0.22)
-		get_parent().add_child(burst)
+		get_parent().call_deferred("add_child", burst)
 		if randf() < 0.65:
 			var frac := FracturePickup.instantiate()
-			get_parent().add_child(frac)
 			frac.setup(FractureManager.Element.FIRE if randf() < 0.5 else FractureManager.Element.STORM, global_position)
+			get_parent().call_deferred("add_child", frac)
 		GameEvents.enemy_died.emit(global_position, 1)
 		queue_free.call_deferred()
