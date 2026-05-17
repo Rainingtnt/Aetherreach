@@ -1,6 +1,6 @@
 extends Area2D
 
-var element := FractureManager.Element.FIRE
+var element: int = FractureManager.Element.FIRE
 var base_y := 0.0
 var float_time := 0.0
 var lifetime := 12.0

@@ -102,7 +102,7 @@ func _physics_process(delta: float) -> void:
 
 	# Movement
 	var dir := (player.global_position - global_position).normalized()
-	velocity = dir * SPEED_P[phase - 1]
+	velocity = dir * (SPEED_P[phase - 1] as float)
 	move_and_slide()
 
 	# Contact damage
@@ -112,12 +112,12 @@ func _physics_process(delta: float) -> void:
 
 	# Spread attack
 	if _attack_t <= 0.0:
-		_attack_t = ATCK_CD[phase - 1]
+		_attack_t = ATCK_CD[phase - 1] as float
 		_spread_shot()
 
 	# Ring attack
 	if _ring_t <= 0.0:
-		_ring_t = RING_CD[phase - 1]
+		_ring_t = RING_CD[phase - 1] as float
 		_ring_shot()
 
 func _update_phase() -> void:
@@ -129,10 +129,10 @@ func _update_phase() -> void:
 		GameEvents.boss_hp_changed.emit(health, MAX_HP)
 
 func _spread_shot() -> void:
-	var cnt := SPREAD_CNT[phase - 1]
+	var cnt: int = SPREAD_CNT[phase - 1] as int
 	var base_dir := (player.global_position - global_position).normalized()
 	var step := deg_to_rad(22.0)
-	var start := -step * (cnt - 1) / 2.0
+	var start := -step * float(cnt - 1) / 2.0
 	for i in cnt:
 		_fire(base_dir.rotated(start + i * step))
 

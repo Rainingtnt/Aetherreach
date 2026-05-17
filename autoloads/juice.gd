@@ -9,7 +9,7 @@ func hit_stop(duration: float = 0.055) -> void:
 		Engine.time_scale = 1.0
 	)
 
-func screen_flash(camera: Camera2D, color: Color = Color.WHITE, duration: float = 0.12) -> void:
+func screen_flash(camera: Camera2D, _color: Color = Color.WHITE, _duration: float = 0.12) -> void:
 	if camera == null:
 		return
 	var orig := camera.offset
